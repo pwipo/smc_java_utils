@@ -1,5 +1,5 @@
-module ru.smcsystem.smc.utils {
+module ru.smcsystem.utils {
     exports ru.smcsystem.smc.utils;
     requires ru.smcsystem.api;
-    requires org.apache.commons.lang3;
+    requires java.desktop;
 }
