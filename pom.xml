@@ -15,6 +15,13 @@
         <java.version>11</java.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>smcsystem</id>
+            <url>http://www.smcsystem.ru/download/mavenRepository</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>ru.smcsystem</groupId>
