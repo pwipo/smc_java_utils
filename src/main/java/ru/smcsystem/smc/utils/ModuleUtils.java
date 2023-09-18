@@ -59,47 +59,47 @@ public class ModuleUtils {
      * if first message type ObjectArray, when return it
      * use object serialization format
      * object serialization format:
-     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
-     *      number - number of item in array
-     *      items. depend of type. format:
-     *          if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
-     *          if item type is 1 (ObjectElement): then list of objects:
-     *              if all elements hase same fields and size>1 then:
-     *                  number - number of fields in object.
-     *                  list of fields. format:
-     *                      string - field name.
-     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
-     *                  list of values for each element. format:
-     *                      field value. depend of type. format:
-     *                          if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
-     *                          if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
-     *                          if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
-     *                          else: any type - simple value.
-     *              else:
-     *                  number - number of fields in object.
-     *                  for each element:
-     *                      for each field. format:
-     *                          string - field name.
-     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
-     *                          field value. depend of type. format:
-     *                              if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
-     *                              if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
-     *                              if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
-     *                              else: any type - simple value.
-     *          if item type is 2 (ObjectElementSimple): then list of simple objects has format:
-     *              if all elements hase same fields and size>1 then:
-     *                  number - number of fields in object.
-     *                  list of fields. format:
-     *                      string - field name.
-     *                  list of values for each element. format:
-     *                      any type - simple value.
-     *              else:
-     *                  number - number of fields in each object (one for all).
-     *                  list of each object fields. format:
-     *                      string - field name.
-     *                      any type - simple value.
-     *          else: list of simple values, format:
-     *              any type - simple value.
+     * number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
+     * number - number of item in array
+     * items. depend of type. format:
+     * if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
+     * if item type is 1 (ObjectElement): then list of objects:
+     * if all elements hase same fields and size>1 then:
+     * number - number of fields in object.
+     * list of fields. format:
+     * string - field name.
+     * number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     * list of values for each element. format:
+     * field value. depend of type. format:
+     * if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
+     * if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
+     * if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
+     * else: any type - simple value.
+     * else:
+     * number - number of fields in object.
+     * for each element:
+     * for each field. format:
+     * string - field name.
+     * number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     * field value. depend of type. format:
+     * if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
+     * if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
+     * if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
+     * else: any type - simple value.
+     * if item type is 2 (ObjectElementSimple): then list of simple objects has format:
+     * if all elements hase same fields and size>1 then:
+     * number - number of fields in object.
+     * list of fields. format:
+     * string - field name.
+     * list of values for each element. format:
+     * any type - simple value.
+     * else:
+     * number - number of fields in each object (one for all).
+     * list of each object fields. format:
+     * string - field name.
+     * any type - simple value.
+     * else: list of simple values, format:
+     * any type - simple value.
      *
      * @param messages - list of messages for deserialization
      * @return ObjectArray
@@ -305,47 +305,47 @@ public class ModuleUtils {
      * serialize objects to messages
      * use object serialization format
      * object serialization format:
-     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
-     *      number - number of item in array
-     *      items. depend of type. format:
-     *          if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
-     *          if item type is 1 (ObjectElement): then list of objects:
-     *              if all elements hase same fields and size>1 then:
-     *                  number - number of fields in object.
-     *                  list of fields. format:
-     *                      string - field name.
-     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
-     *                  list of values for each element. format:
-     *                      field value. depend of type. format:
-     *                          if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
-     *                          if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
-     *                          if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
-     *                          else: any type - simple value.
-     *              else:
-     *                  number - number of fields in object.
-     *                  for each element:
-     *                      for each field. format:
-     *                          string - field name.
-     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
-     *                          field value. depend of type. format:
-     *                              if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
-     *                              if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
-     *                              if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
-     *                              else: any type - simple value.
-     *          if item type is 2 (ObjectElementSimple): then list of simple objects has format:
-     *              if all elements hase same fields and size>1 then:
-     *                  number - number of fields in object.
-     *                  list of fields. format:
-     *                      string - field name.
-     *                  list of values for each element. format:
-     *                      any type - simple value.
-     *              else:
-     *                  number - number of fields in each object (one for all).
-     *                  list of each object fields. format:
-     *                      string - field name.
-     *                      any type - simple value.
-     *          else: list of simple values, format:
-     *              any type - simple value.
+     * number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
+     * number - number of item in array
+     * items. depend of type. format:
+     * if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
+     * if item type is 1 (ObjectElement): then list of objects:
+     * if all elements hase same fields and size>1 then:
+     * number - number of fields in object.
+     * list of fields. format:
+     * string - field name.
+     * number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     * list of values for each element. format:
+     * field value. depend of type. format:
+     * if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
+     * if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
+     * if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
+     * else: any type - simple value.
+     * else:
+     * number - number of fields in object.
+     * for each element:
+     * for each field. format:
+     * string - field name.
+     * number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     * field value. depend of type. format:
+     * if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
+     * if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
+     * if item type is 2-ObjectElementSimple: then list of simple objects. each has format described above, recursion.
+     * else: any type - simple value.
+     * if item type is 2 (ObjectElementSimple): then list of simple objects has format:
+     * if all elements hase same fields and size>1 then:
+     * number - number of fields in object.
+     * list of fields. format:
+     * string - field name.
+     * list of values for each element. format:
+     * any type - simple value.
+     * else:
+     * number - number of fields in each object (one for all).
+     * list of each object fields. format:
+     * string - field name.
+     * any type - simple value.
+     * else: list of simple values, format:
+     * any type - simple value.
      *
      * @param mainList - list of objects for serialization
      * @return List of values, ready for send as messages
@@ -1022,7 +1022,7 @@ public class ModuleUtils {
                 String getter = p.getReadMethod().getName();
                 Class<?> parameterType = p.getPropertyType();
                 try {
-                    Method getterMethod = resultClass.getDeclaredMethod(getter, parameterType);
+                    Method getterMethod = resultClass.getDeclaredMethod(getter);
                     Object value = getterMethod.invoke(t);
                     if (parameterType == Boolean.class) {
                         value = value.toString();
