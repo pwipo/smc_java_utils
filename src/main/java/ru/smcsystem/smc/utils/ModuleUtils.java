@@ -975,13 +975,13 @@ public class ModuleUtils {
                         if (isString(f)) {
                             value = new Date(Long.parseLong((String) value));
                         } else if (isNumber(f)) {
-                            value = new Date(((Number) value).intValue());
+                            value = new Date(((Number) value).longValue());
                         }
                     } else if (parameterType.equals(Instant.class)) {
                         if (isString(f)) {
                             value = Instant.ofEpochMilli(Long.parseLong((String) value));
                         } else if (isNumber(f)) {
-                            value = Instant.ofEpochMilli(((Number) value).intValue());
+                            value = Instant.ofEpochMilli(((Number) value).longValue());
                         }
                     } else if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                         value = convertFromObjectElement(getObjectElement(f), parameterType, silent, ignoreCaseInName);
