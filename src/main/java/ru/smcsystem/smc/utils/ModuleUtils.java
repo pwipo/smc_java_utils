@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -956,10 +957,11 @@ public class ModuleUtils {
                 PropertyDescriptor p = pOpt.get();
                 String setter = p.getWriteMethod().getName();
                 Class<?> parameterType = p.getPropertyType();
+                Object value = null;
                 try {
                     Method setterMethod = resultClass.getDeclaredMethod(setter, parameterType);
-                    Object value = f.getValue();
-                    if (parameterType == Boolean.class) {
+                    value = f.getValue();
+                    if (parameterType.equals(Boolean.class)) {
                         if (isString(f)) {
                             value = Boolean.parseBoolean((String) value);
                         } else if (isNumber(f)) {
@@ -969,6 +971,18 @@ public class ModuleUtils {
                         ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
                         Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                         value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
+                    } else if (parameterType.equals(Date.class)) {
+                        if (isString(f)) {
+                            value = new Date(Long.parseLong((String) value));
+                        } else if (isNumber(f)) {
+                            value = new Date(((Number) value).intValue());
+                        }
+                    } else if (parameterType.equals(Instant.class)) {
+                        if (isString(f)) {
+                            value = Instant.ofEpochMilli(Long.parseLong((String) value));
+                        } else if (isNumber(f)) {
+                            value = Instant.ofEpochMilli(((Number) value).intValue());
+                        }
                     } else if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                         value = convertFromObjectElement(getObjectElement(f), parameterType, silent, ignoreCaseInName);
                     }
@@ -976,7 +990,7 @@ public class ModuleUtils {
                         setterMethod.invoke(t, value);
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(setter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
                 }
             }
             return t;
@@ -1001,10 +1015,10 @@ public class ModuleUtils {
             objectArray = objectArrayTmp;
         } else {
             objectArray = new ObjectArray(
-                    ObjectType.OBJECT_ELEMENT,
                     t.stream()
                             .map(o -> convertToObjectElement(o, silent))
-                            .collect(Collectors.toList()));
+                            .collect(Collectors.toList()),
+                    ObjectType.OBJECT_ELEMENT);
         }
         return objectArray;
     }
@@ -1021,15 +1035,20 @@ public class ModuleUtils {
                 String name = p.getName();
                 String getter = p.getReadMethod().getName();
                 Class<?> parameterType = p.getPropertyType();
+                Object value = null;
                 try {
                     Method getterMethod = resultClass.getDeclaredMethod(getter);
-                    Object value = getterMethod.invoke(t);
-                    if (parameterType == Boolean.class) {
+                    value = getterMethod.invoke(t);
+                    if (parameterType.equals(Boolean.class)) {
                         value = value.toString();
                     } else if (List.class.isAssignableFrom(parameterType)) {
                         ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
                         Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                         value = convertToObjectArray((List) value, pClass, silent);
+                    } else if (parameterType.equals(Date.class)) {
+                        value = ((Date) value).getTime();
+                    } else if (parameterType.equals(Instant.class)) {
+                        value = ((Instant) value).toEpochMilli();
                     } else if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                         value = convertToObjectElement(value, silent);
                     }
@@ -1037,7 +1056,7 @@ public class ModuleUtils {
                         objectElement.getFields().add(new ObjectField(name, getObjectType(value), value));
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(getter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
                 }
             }
         } catch (Exception e) {
