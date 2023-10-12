@@ -18,7 +18,19 @@ public enum ObjectTypePrivate {
     BIG_DECIMAL,
     BYTES,
     OBJECT_ELEMENT_OPTIMIZED,
-    OBJECT_ELEMENT_SIMPLE_OPTIMIZED;
+    OBJECT_ELEMENT_SIMPLE_OPTIMIZED,
+    BOOLEAN,
+    STRING_NULL,
+    BYTE_NULL,
+    SHORT_NULL,
+    INTEGER_NULL,
+    LONG_NULL,
+    FLOAT_NULL,
+    DOUBLE_NULL,
+    BIG_INTEGER_NULL,
+    BIG_DECIMAL_NULL,
+    BYTES_NULL,
+    BOOLEAN_NULL;
 
     ObjectType convert() {
         switch (this) {
@@ -52,6 +64,8 @@ public enum ObjectTypePrivate {
             case OBJECT_ELEMENT_OPTIMIZED:
             case OBJECT_ELEMENT_SIMPLE_OPTIMIZED:
                 return ObjectType.OBJECT_ELEMENT;
+            case BOOLEAN:
+                return ObjectType.BOOLEAN;
         }
         throw new IllegalArgumentException(this.name());
     }

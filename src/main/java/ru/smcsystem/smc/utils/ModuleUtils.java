@@ -32,6 +32,10 @@ public class ModuleUtils {
         return isBytes(m) ? (byte[]) m.getValue() : null;
     }
 
+    public static Boolean getBoolean(IMessage m) {
+        return isBoolean(m) ? (Boolean) m.getValue() : null;
+    }
+
     public static String toString(IMessage m) {
         if (m == null)
             return null;
@@ -59,8 +63,9 @@ public class ModuleUtils {
      * deserialize messages to object array
      * if first message type ObjectArray, when return it
      * use object serialization format
+     * @formatter:off
      * object serialization format:
-     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
+     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED, 16-Boolean
      *      number - number of item in array
      *      items. depend of type. format:
      *          if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
@@ -69,7 +74,7 @@ public class ModuleUtils {
      *                  number - number of fields in object.
      *                  list of fields. format:
      *                      string - field name.
-     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 16-Boolean
      *                  list of values for each element. format:
      *                      field value. depend of type. format:
      *                          if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
@@ -81,7 +86,7 @@ public class ModuleUtils {
      *                  for each element:
      *                      for each field. format:
      *                          string - field name.
-     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 16-Boolean
      *                          field value. depend of type. format:
      *                              if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
      *                              if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
@@ -101,6 +106,7 @@ public class ModuleUtils {
      *                      any type - simple value.
      *          else: list of simple values, format:
      *              any type - simple value.
+     * @formatter:on
      *
      * @param messages - list of messages for deserialization
      * @return ObjectArray
@@ -160,6 +166,7 @@ public class ModuleUtils {
                 case BIG_INTEGER:
                 case BIG_DECIMAL:
                 case BYTES:
+                case BOOLEAN:
                     for (int i = 0; i < count; i++)
                         objectArray.add(messages.poll());
                     break;
@@ -286,6 +293,10 @@ public class ModuleUtils {
                 }
                 break;
             }
+            case OBJECT_ELEMENT_OPTIMIZED:
+                break;
+            case OBJECT_ELEMENT_SIMPLE_OPTIMIZED:
+                break;
             case VALUE_ANY:
             case STRING:
             case BYTE:
@@ -297,7 +308,41 @@ public class ModuleUtils {
             case BIG_INTEGER:
             case BIG_DECIMAL:
             case BYTES:
+            case BOOLEAN:
                 objectElement.getFields().add(new ObjectField(fieldName, messages.poll()));
+                break;
+            case STRING_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.STRING, null));
+                break;
+            case BYTE_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.BYTE, null));
+                break;
+            case SHORT_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.SHORT, null));
+                break;
+            case INTEGER_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.INTEGER, null));
+                break;
+            case LONG_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.LONG, null));
+                break;
+            case FLOAT_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.FLOAT, null));
+                break;
+            case DOUBLE_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.DOUBLE, null));
+                break;
+            case BIG_INTEGER_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.BIG_INTEGER, null));
+                break;
+            case BIG_DECIMAL_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.BIG_DECIMAL, null));
+                break;
+            case BYTES_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.BYTES, null));
+                break;
+            case BOOLEAN_NULL:
+                objectElement.getFields().add(new ObjectField(fieldName, ObjectType.BOOLEAN, null));
                 break;
         }
     }
@@ -305,8 +350,9 @@ public class ModuleUtils {
     /**
      * serialize objects to messages
      * use object serialization format
+     * @formatter:off
      * object serialization format:
-     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED
+     *      number - type of elements, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 14-OBJECT_ELEMENT_OPTIMIZED, 15-OBJECT_ELEMENT_SIMPLE_OPTIMIZED, 16-Boolean
      *      number - number of item in array
      *      items. depend of type. format:
      *          if item type is 0 (ObjectArray): then list of arrays. each has format described above, recursion.
@@ -315,7 +361,7 @@ public class ModuleUtils {
      *                  number - number of fields in object.
      *                  list of fields. format:
      *                      string - field name.
-     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     *                      number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 16-Boolean
      *                  list of values for each element. format:
      *                      field value. depend of type. format:
      *                          if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
@@ -327,7 +373,7 @@ public class ModuleUtils {
      *                  for each element:
      *                      for each field. format:
      *                          string - field name.
-     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[]
+     *                          number - field type, may by: 0-ObjectArray, 1-ObjectElement, 2-ObjectElementSimple, 3-AnySimpleTypes, 4-String, 5-Byte, 6-Short, 7-Integer, 8-Long, 9-Float, 10-Double, 11-BigInteger, 12-BigDecimal, 13-byte[], 16-Boolean
      *                          field value. depend of type. format:
      *                              if item type is 0-ObjectArray: then list of arrays. each has format described above, recursion.
      *                              if item type is 1-ObjectElement: then list of objects. each has format described above, recursion.
@@ -347,6 +393,7 @@ public class ModuleUtils {
      *                      any type - simple value.
      *          else: list of simple values, format:
      *              any type - simple value.
+     * @formatter:on
      *
      * @param mainList - list of objects for serialization
      * @return List of values, ready for send as messages
@@ -360,6 +407,7 @@ public class ModuleUtils {
         result.add(mainList.size());
         if (mainList.size() == 0)
             return result;
+        boolean hasFieldWithNull = false;
         if (typePrivate == ObjectTypePrivate.OBJECT_ELEMENT && mainList.size() > 1) {
             boolean isSimple = true;
             List<String> fieldNames = null;
@@ -371,10 +419,21 @@ public class ModuleUtils {
                         isSimple = false;
                         break;
                     }
-                } else if (!objectElement.isSimple() || !objectElement.getFields().stream()
-                        .map(ObjectField::getName).collect(Collectors.toList()).equals(fieldNames)) {
-                    isSimple = false;
-                    break;
+                    if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
+                        isSimple = false;
+                        hasFieldWithNull = true;
+                        break;
+                    }
+                } else {
+                    if (!objectElement.isSimple() || !objectElement.getFields().stream().map(ObjectField::getName).collect(Collectors.toList()).equals(fieldNames)) {
+                        isSimple = false;
+                        break;
+                    }
+                    if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
+                        isSimple = false;
+                        hasFieldWithNull = true;
+                        break;
+                    }
                 }
             }
             if (isSimple)
@@ -387,7 +446,7 @@ public class ModuleUtils {
                 break;
             case OBJECT_ELEMENT: {
                 List<String> definedFields = null;
-                if (mainList.size() > 1 && isSameFields(mainList)) {
+                if (!hasFieldWithNull && mainList.size() > 1 && isSameFields(mainList)) {
                     List<Map.Entry<String, ObjectType>> definedFieldsTmp = new ArrayList<>(mainList.size() + 1);
                     ObjectElement objectElement = (ObjectElement) mainList.get(0);
                     objectElement.getFields().forEach(f -> definedFieldsTmp.add(Map.entry(f.getName(), f.getType())));
@@ -433,7 +492,8 @@ public class ModuleUtils {
             case FLOAT:
             case DOUBLE:
             case BIG_DECIMAL:
-            case BYTES: {
+            case BYTES:
+            case BOOLEAN: {
                 for (int i = 0; i < mainList.size(); i++)
                     result.add(mainList.get(i));
                 break;
@@ -459,8 +519,9 @@ public class ModuleUtils {
             objectElement.getFields().forEach(objField -> {
                 result.add(objField.getName());
                 if (!isSimple)
-                    result.add(ObjectTypePrivate.valueOf(objField.getType().name()).ordinal());
-                result.addAll(serializeFromObjectFieldValue(objField.getType(), objField.getValue()));
+                    result.add(ObjectTypePrivate.valueOf(objField.getValue() != null ? objField.getType().name() : (objField.getType().name() + "_NULL")).ordinal());
+                if (objField.getValue() != null)
+                    result.addAll(serializeFromObjectFieldValue(objField.getType(), objField.getValue()));
             });
         }
         return result;
@@ -491,6 +552,7 @@ public class ModuleUtils {
             case DOUBLE:
             case BIG_DECIMAL:
             case BYTES:
+            case BOOLEAN:
                 return List.of(value);
         }
         throw new IllegalArgumentException(type.name());
@@ -506,6 +568,10 @@ public class ModuleUtils {
 
     public static boolean isBytes(IMessage m) {
         return m != null && ValueType.BYTES.equals(m.getType());
+    }
+
+    public static boolean isBoolean(IMessage m) {
+        return m != null && ValueType.BOOLEAN.equals(m.getType());
     }
 
     public static boolean isObjectArray(IMessage m) {
@@ -561,6 +627,10 @@ public class ModuleUtils {
         return m != null && ObjectType.BYTES.equals(m.getType());
     }
 
+    public static boolean isBoolean(ObjectField m) {
+        return m != null && ObjectType.BOOLEAN.equals(m.getType());
+    }
+
     public static boolean isObjectArray(ObjectField m) {
         return m != null && ObjectType.OBJECT_ARRAY.equals(m.getType());
     }
@@ -579,6 +649,10 @@ public class ModuleUtils {
 
     public static byte[] getBytes(ObjectField m) {
         return isBytes(m) ? (byte[]) m.getValue() : null;
+    }
+
+    public static Boolean getBoolean(ObjectField m) {
+        return isBoolean(m) ? (Boolean) m.getValue() : null;
     }
 
     public static ObjectArray getObjectArray(ObjectField m) {
@@ -704,6 +778,10 @@ public class ModuleUtils {
         return objectArray != null && objectArray.size() > 0 && (ObjectType.VALUE_ANY.equals(objectArray.getType()) || ObjectType.BYTES.equals(objectArray.getType()));
     }
 
+    public static boolean isArrayContainBoolean(ObjectArray objectArray) {
+        return objectArray != null && objectArray.size() > 0 && (ObjectType.VALUE_ANY.equals(objectArray.getType()) || ObjectType.BOOLEAN.equals(objectArray.getType()));
+    }
+
     public static ValueType toValueType(ObjectField m) {
         ValueType result = null;
         if (m == null || !m.isSimple())
@@ -737,6 +815,8 @@ public class ModuleUtils {
             return ValueType.STRING;
         } else if (value instanceof byte[]) {
             return ValueType.BYTES;
+        } else if (value instanceof Boolean) {
+            return ValueType.BOOLEAN;
         } else if (value instanceof ObjectArray) {
             return ValueType.OBJECT_ARRAY;
         } else {
@@ -774,6 +854,8 @@ public class ModuleUtils {
                 return ObjectType.BIG_DECIMAL;
             case BYTES:
                 return ObjectType.BYTES;
+            case BOOLEAN:
+                return ObjectType.BOOLEAN;
             case OBJECT_ARRAY:
                 return ObjectType.OBJECT_ARRAY;
         }
@@ -802,6 +884,8 @@ public class ModuleUtils {
                 return ValueType.BIG_DECIMAL;
             case BYTES:
                 return ValueType.BYTES;
+            case BOOLEAN:
+                return ValueType.BOOLEAN;
             case OBJECT_ARRAY:
                 return ValueType.OBJECT_ARRAY;
         }
@@ -977,7 +1061,7 @@ public class ModuleUtils {
                 if (pOpt.isEmpty())
                     continue;
                 PropertyDescriptor p = pOpt.get();
-                if(p.getWriteMethod() == null)
+                if (p.getWriteMethod() == null)
                     continue;
                 String setter = p.getWriteMethod().getName();
                 Class<?> parameterType = p.getPropertyType();
@@ -1079,7 +1163,7 @@ public class ModuleUtils {
                     if (value != null)
                         objectElement.getFields().add(new ObjectField(name, getObjectType(value), value));
                 } catch (NoSuchMethodException e) {
-                    if(!Objects.equals(name, "class") && !silent)
+                    if (!Objects.equals(name, "class") && !silent)
                         throw new RuntimeException(getter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
                 } catch (Exception e) {
                     if (!silent)
