@@ -402,7 +402,7 @@ public class ModuleUtils {
         List<Object> result = new LinkedList<>();
         if (mainList == null)
             return result;
-        ObjectTypePrivate typePrivate = ObjectTypePrivate.valueOf(mainList.getType().name());
+        ObjectTypePrivate typePrivate = toObjectTypePrivate(mainList.getType(), false);
         result.add(typePrivate.ordinal());
         result.add(mainList.size());
         if (mainList.size() == 0)
@@ -456,7 +456,7 @@ public class ModuleUtils {
                     result.add(definedFieldsTmp.size());
                     definedFieldsTmp.forEach(f -> {
                         result.add(f.getKey());
-                        result.add(ObjectTypePrivate.valueOf(f.getValue().name()).ordinal());
+                        result.add(toObjectTypePrivate(f.getValue(), false).ordinal());
                     });
                     definedFields = definedFieldsTmp.stream().map(Map.Entry::getKey).collect(Collectors.toList());
                 }
@@ -519,7 +519,7 @@ public class ModuleUtils {
             objectElement.getFields().forEach(objField -> {
                 result.add(objField.getName());
                 if (!isSimple)
-                    result.add(ObjectTypePrivate.valueOf(objField.getValue() != null ? objField.getType().name() : (objField.getType().name() + "_NULL")).ordinal());
+                    result.add(toObjectTypePrivate(objField.getType(), objField.getValue() == null).ordinal());
                 if (objField.getValue() != null)
                     result.addAll(serializeFromObjectFieldValue(objField.getType(), objField.getValue()));
             });
@@ -556,6 +556,40 @@ public class ModuleUtils {
                 return List.of(value);
         }
         throw new IllegalArgumentException(type.name());
+    }
+
+    private static ObjectTypePrivate toObjectTypePrivate(ObjectType type, boolean isNull) {
+        switch (type) {
+            case OBJECT_ARRAY:
+                return ObjectTypePrivate.OBJECT_ARRAY;
+            case OBJECT_ELEMENT:
+                return ObjectTypePrivate.OBJECT_ELEMENT;
+            case VALUE_ANY:
+                return ObjectTypePrivate.VALUE_ANY;
+            case STRING:
+                return isNull ? ObjectTypePrivate.STRING_NULL : ObjectTypePrivate.STRING;
+            case BYTE:
+                return isNull ? ObjectTypePrivate.BYTE_NULL : ObjectTypePrivate.BYTE;
+            case SHORT:
+                return isNull ? ObjectTypePrivate.SHORT_NULL : ObjectTypePrivate.SHORT;
+            case INTEGER:
+                return isNull ? ObjectTypePrivate.INTEGER_NULL : ObjectTypePrivate.INTEGER;
+            case LONG:
+                return isNull ? ObjectTypePrivate.LONG_NULL : ObjectTypePrivate.LONG;
+            case FLOAT:
+                return isNull ? ObjectTypePrivate.FLOAT_NULL : ObjectTypePrivate.FLOAT;
+            case DOUBLE:
+                return isNull ? ObjectTypePrivate.DOUBLE_NULL : ObjectTypePrivate.DOUBLE;
+            case BIG_INTEGER:
+                return isNull ? ObjectTypePrivate.BIG_INTEGER_NULL : ObjectTypePrivate.BIG_INTEGER;
+            case BIG_DECIMAL:
+                return isNull ? ObjectTypePrivate.BIG_DECIMAL_NULL : ObjectTypePrivate.BIG_DECIMAL;
+            case BYTES:
+                return isNull ? ObjectTypePrivate.BYTES_NULL : ObjectTypePrivate.BYTES;
+            case BOOLEAN:
+                return isNull ? ObjectTypePrivate.BOOLEAN_NULL : ObjectTypePrivate.BOOLEAN;
+        }
+        return ObjectTypePrivate.valueOf(type.name());
     }
 
     public static boolean isNumber(IMessage m) {
