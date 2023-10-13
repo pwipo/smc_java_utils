@@ -1013,10 +1013,25 @@ public class ModuleUtils {
                 .limit(executionContextTool.countSource())
                 .map(executionContextTool::getMessages)
                 .map(l -> l.stream()
-                        .filter(a -> ActionType.EXECUTE.equals(a.getType()))
+                        // .filter(a -> ActionType.EXECUTE.equals(a.getType()))
                         .map(IAction::getMessages)
                         .filter(l2 -> !l2.isEmpty())
                         .collect(Collectors.toList()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<List<IMessage>> getLestMessages(ExecutionContextTool executionContextTool) {
+        return Stream.iterate(0, n -> n + 1)
+                .limit(executionContextTool.countSource())
+                .map(executionContextTool::getMessages)
+                .map(l -> {
+                    if (!l.isEmpty()) {
+                        IAction iAction = l.get(l.size() - 1);
+                        if (hasData(iAction))
+                            return new ArrayList<>(iAction.getMessages());
+                    }
+                    return new ArrayList<IMessage>();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -1024,7 +1039,7 @@ public class ModuleUtils {
         return Stream.iterate(0, n -> n + 1)
                 .limit(executionContextTool.countSource())
                 .flatMap(i -> executionContextTool.getMessages(i).stream())
-                .filter(ModuleUtils::hasData)
+                // .filter(ModuleUtils::hasData)
                 .flatMap(a -> a.getMessages().stream())
                 .collect(Collectors.toList());
     }
