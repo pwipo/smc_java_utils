@@ -54,6 +54,28 @@ public class ModuleUtils {
         return result;
     }
 
+    public static Boolean toBoolean(IMessage m) {
+        if (m == null)
+            return false;
+        Boolean result;
+        switch (m.getType()) {
+            case STRING:
+                result = Boolean.parseBoolean((String) m.getValue());
+                break;
+            case BOOLEAN:
+                result = (Boolean) m.getValue();
+                break;
+            case BYTES:
+            case OBJECT_ARRAY:
+                result = true;
+                break;
+            default:
+                result = ((Number) m.getValue()).intValue() > 0;
+                break;
+        }
+        return result;
+    }
+
     public static ObjectArray getObjectArray(IMessage m) {
         return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
     }
@@ -711,6 +733,28 @@ public class ModuleUtils {
         return result;
     }
 
+    public static Boolean toBoolean(ObjectField m) {
+        if (m == null)
+            return false;
+        Boolean result;
+        switch (m.getType()) {
+            case STRING:
+                result = Boolean.parseBoolean((String) m.getValue());
+                break;
+            case BOOLEAN:
+                result = (Boolean) m.getValue();
+                break;
+            case BYTES:
+            case OBJECT_ARRAY:
+                result = true;
+                break;
+            default:
+                result = ((Number) m.getValue()).intValue() > 0;
+                break;
+        }
+        return result;
+    }
+
     public static ObjectElement getObjectElement(ObjectField m) {
         if (m == null)
             return null;
@@ -829,6 +873,8 @@ public class ModuleUtils {
     }
 
     public static ValueType getValueTypeObject(Object value) {
+        if (value == null)
+            return null;
         if (value instanceof Byte) {
             return ValueType.BYTE;
         } else if (value instanceof Short) {
@@ -854,7 +900,39 @@ public class ModuleUtils {
         } else if (value instanceof ObjectArray) {
             return ValueType.OBJECT_ARRAY;
         } else {
-            throw new IllegalArgumentException();
+            return null;
+        }
+    }
+
+    public static ValueType getValueTypeClass(Class<?> cls) {
+        if (cls == null)
+            return null;
+        if (Byte.class.isAssignableFrom(cls)) {
+            return ValueType.BYTE;
+        } else if (Short.class.isAssignableFrom(cls)) {
+            return ValueType.SHORT;
+        } else if (Integer.class.isAssignableFrom(cls)) {
+            return ValueType.INTEGER;
+        } else if (Long.class.isAssignableFrom(cls)) {
+            return ValueType.LONG;
+        } else if (Float.class.isAssignableFrom(cls)) {
+            return ValueType.FLOAT;
+        } else if (Double.class.isAssignableFrom(cls)) {
+            return ValueType.DOUBLE;
+        } else if (BigInteger.class.isAssignableFrom(cls)) {
+            return ValueType.BIG_INTEGER;
+        } else if (BigDecimal.class.isAssignableFrom(cls)) {
+            return ValueType.BIG_DECIMAL;
+        } else if (String.class.isAssignableFrom(cls)) {
+            return ValueType.STRING;
+        } else if (byte[].class.isAssignableFrom(cls)) {
+            return ValueType.BYTES;
+        } else if (Boolean.class.isAssignableFrom(cls)) {
+            return ValueType.BOOLEAN;
+        } else if (ObjectArray.class.isAssignableFrom(cls)) {
+            return ValueType.OBJECT_ARRAY;
+        } else {
+            return null;
         }
     }
 
@@ -867,6 +945,8 @@ public class ModuleUtils {
     }
 
     public static ObjectType convertTo(ValueType type) {
+        if (type == null)
+            return null;
         switch (type) {
             case STRING:
                 return ObjectType.STRING;
@@ -897,6 +977,8 @@ public class ModuleUtils {
     }
 
     public static ValueType convertTo(ObjectType type) {
+        if (type == null)
+            return null;
         switch (type) {
             case STRING:
                 return ValueType.STRING;
@@ -1113,41 +1195,53 @@ public class ModuleUtils {
                 if (p.getWriteMethod() == null)
                     continue;
                 String setter = p.getWriteMethod().getName();
-                Class<?> parameterType = p.getPropertyType();
+                Class<?> propertyType = p.getPropertyType();
                 Object value = null;
                 try {
-                    Method setterMethod = resultClass.getDeclaredMethod(setter, parameterType);
+                    Method setterMethod = resultClass.getDeclaredMethod(setter, propertyType);
                     value = f.getValue();
-                    if (parameterType.equals(Boolean.class)) {
-                        if (isString(f)) {
-                            value = Boolean.parseBoolean((String) value);
-                        } else if (isNumber(f)) {
-                            value = ((Number) value).intValue() > 0;
+                    if (value != null) {
+                        if (propertyType.equals(Boolean.class)) {
+                            if (isString(f)) {
+                                value = Boolean.parseBoolean((String) value);
+                            } else if (isNumber(f)) {
+                                value = ((Number) value).intValue() > 0;
+                            }
+                        } else if (propertyType.equals(String.class)) {
+                            value = value.toString();
+                        } else if (List.class.isAssignableFrom(propertyType)) {
+                            ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
+                            Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
+                            value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
+                        } else if (propertyType.equals(Date.class)) {
+                            if (isString(f)) {
+                                value = new Date(Long.parseLong((String) value));
+                            } else if (isNumber(f)) {
+                                value = new Date(((Number) value).longValue());
+                            }
+                        } else if (propertyType.equals(Instant.class)) {
+                            if (isString(f)) {
+                                value = Instant.ofEpochMilli(Long.parseLong((String) value));
+                            } else if (isNumber(f)) {
+                                value = Instant.ofEpochMilli(((Number) value).longValue());
+                            }
+                        } else if (Number.class.isAssignableFrom(propertyType)) {
+                            if (isString(f)) {
+                                value = Long.parseLong((String) value);
+                            } else if (isBoolean(f)) {
+                                value = ((Boolean) value) ? 1 : 0;
+                            }
+                        } else {
+                            ValueType valueTypeClass = getValueTypeClass(propertyType);
+                            if (valueTypeClass == null)
+                                value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName);
                         }
-                    } else if (List.class.isAssignableFrom(parameterType)) {
-                        ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
-                        Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
-                        value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
-                    } else if (parameterType.equals(Date.class)) {
-                        if (isString(f)) {
-                            value = new Date(Long.parseLong((String) value));
-                        } else if (isNumber(f)) {
-                            value = new Date(((Number) value).longValue());
-                        }
-                    } else if (parameterType.equals(Instant.class)) {
-                        if (isString(f)) {
-                            value = Instant.ofEpochMilli(Long.parseLong((String) value));
-                        } else if (isNumber(f)) {
-                            value = Instant.ofEpochMilli(((Number) value).longValue());
-                        }
-                    } else if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
-                        value = convertFromObjectElement(getObjectElement(f), parameterType, silent, ignoreCaseInName);
+                        if (value != null)
+                            setterMethod.invoke(t, value);
                     }
-                    if (value != null)
-                        setterMethod.invoke(t, value);
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(setter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
+                        throw new RuntimeException(setter + " " + propertyType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
                 }
             }
             return t;
@@ -1162,20 +1256,29 @@ public class ModuleUtils {
         ObjectArray objectArray = null;
         if (t == null)
             return new ObjectArray();
-        if (resultClass.equals(String.class) || Number.class.isAssignableFrom(resultClass) || byte[].class.isAssignableFrom(resultClass)) {
-            objectArray = new ObjectArray((List) t, ObjectType.VALUE_ANY);
-        } else if (List.class.isAssignableFrom(resultClass)) {
+        if (List.class.isAssignableFrom(resultClass)) {
             ObjectArray objectArrayTmp = new ObjectArray(ObjectType.OBJECT_ARRAY);
             t.stream()
-                    .filter(o -> o instanceof String || o instanceof Number || o instanceof byte[])
-                    .forEach(objectArrayTmp::addValueAny);
+                    .map(o -> (List<Object>) o)
+                    .filter(l -> !l.isEmpty())
+                    .forEach(l -> {
+                        Object o = l.get(0);
+                        ObjectType objectType = convertTo(getValueTypeObject(o));
+                        if (objectType != null && objectType != ObjectType.OBJECT_ARRAY)
+                            objectArrayTmp.add(new ObjectArray(l, objectType));
+                    });
             objectArray = objectArrayTmp;
         } else {
-            objectArray = new ObjectArray(
-                    t.stream()
-                            .map(o -> convertToObjectElement(o, silent))
-                            .collect(Collectors.toList()),
-                    ObjectType.OBJECT_ELEMENT);
+            ObjectType objectType = convertTo(getValueTypeClass(resultClass));
+            if (objectType != null && objectType != ObjectType.OBJECT_ARRAY) {
+                objectArray = new ObjectArray((List<Object>) t, objectType);
+            } else {
+                objectArray = new ObjectArray(
+                        t.stream()
+                                .map(o -> convertToObjectElement(o, silent))
+                                .collect(Collectors.toList()),
+                        ObjectType.OBJECT_ELEMENT);
+            }
         }
         return objectArray;
     }
@@ -1191,32 +1294,39 @@ public class ModuleUtils {
             for (PropertyDescriptor p : props) {
                 String name = p.getName();
                 String getter = p.getReadMethod().getName();
-                Class<?> parameterType = p.getPropertyType();
+                Class<?> propertyType = p.getPropertyType();
                 Object value = null;
                 try {
                     Method getterMethod = resultClass.getDeclaredMethod(getter);
                     value = getterMethod.invoke(t);
-                    if (parameterType.equals(Boolean.class)) {
-                        value = value.toString();
-                    } else if (List.class.isAssignableFrom(parameterType)) {
-                        ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
-                        Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
-                        value = convertToObjectArray((List) value, pClass, silent);
-                    } else if (parameterType.equals(Date.class)) {
-                        value = ((Date) value).getTime();
-                    } else if (parameterType.equals(Instant.class)) {
-                        value = ((Instant) value).toEpochMilli();
-                    } else if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
-                        value = convertToObjectElement(value, silent);
+                    ObjectField objectField = null;
+                    if (value != null) {
+                        if (List.class.isAssignableFrom(propertyType)) {
+                            ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
+                            Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
+                            value = convertToObjectArray((List) value, pClass, silent);
+                        } else if (propertyType.equals(Date.class)) {
+                            value = ((Date) value).getTime();
+                        } else if (propertyType.equals(Instant.class)) {
+                            value = ((Instant) value).toEpochMilli();
+                        } else {
+                            ValueType valueTypeClass = getValueTypeClass(propertyType);
+                            if (valueTypeClass == null)
+                                // if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
+                                value = convertToObjectElement(value, silent);
+                        }
+                        if (value != null)
+                            objectField = new ObjectField(name, getObjectType(value), value);
+                    } else {
+                        objectField = new ObjectField(name, convertTo(getValueTypeClass(getterMethod.getReturnType())), null);
                     }
-                    if (value != null)
-                        objectElement.getFields().add(new ObjectField(name, getObjectType(value), value));
+                    objectElement.getFields().add(objectField);
                 } catch (NoSuchMethodException e) {
                     if (!Objects.equals(name, "class") && !silent)
-                        throw new RuntimeException(getter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
+                        throw new RuntimeException(getter + " " + propertyType.getName(), e);
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(getter + " " + parameterType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
+                        throw new RuntimeException(getter + " " + propertyType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
                 }
             }
         } catch (Exception e) {
