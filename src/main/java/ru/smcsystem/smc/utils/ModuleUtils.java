@@ -21,22 +21,50 @@ import java.util.stream.Stream;
 
 public class ModuleUtils {
     public static Number getNumber(IMessage m) {
-        return isNumber(m) ? (Number) m.getValue() : null;
+        return getNumber((IValue) m);
     }
 
     public static String getString(IMessage m) {
-        return isString(m) ? (String) m.getValue() : null;
+        return getString((IValue) m);
     }
 
     public static byte[] getBytes(IMessage m) {
-        return isBytes(m) ? (byte[]) m.getValue() : null;
+        return getBytes((IValue) m);
     }
 
     public static Boolean getBoolean(IMessage m) {
-        return isBoolean(m) ? (Boolean) m.getValue() : null;
+        return getBoolean((IValue) m);
     }
 
     public static String toString(IMessage m) {
+        return toString((IValue) m);
+    }
+
+    public static Boolean toBoolean(IMessage m) {
+        return toBoolean((IValue) m);
+    }
+
+    public static ObjectArray getObjectArray(IMessage m) {
+        return getObjectArray((IValue) m);
+    }
+
+    public static Number getNumber(IValue m) {
+        return isNumber(m) ? (Number) m.getValue() : null;
+    }
+
+    public static String getString(IValue m) {
+        return isString(m) ? (String) m.getValue() : null;
+    }
+
+    public static byte[] getBytes(IValue m) {
+        return isBytes(m) ? (byte[]) m.getValue() : null;
+    }
+
+    public static Boolean getBoolean(IValue m) {
+        return isBoolean(m) ? (Boolean) m.getValue() : null;
+    }
+
+    public static String toString(IValue m) {
         if (m == null)
             return null;
         String result;
@@ -54,7 +82,7 @@ public class ModuleUtils {
         return result;
     }
 
-    public static Boolean toBoolean(IMessage m) {
+    public static Boolean toBoolean(IValue m) {
         if (m == null)
             return false;
         Boolean result;
@@ -76,10 +104,9 @@ public class ModuleUtils {
         return result;
     }
 
-    public static ObjectArray getObjectArray(IMessage m) {
+    public static ObjectArray getObjectArray(IValue m) {
         return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
     }
-
 
     /**
      * deserialize messages to object array
@@ -615,22 +642,42 @@ public class ModuleUtils {
     }
 
     public static boolean isNumber(IMessage m) {
-        return m != null && ((ValueType.BYTE.equals(m.getType()) || ValueType.SHORT.equals(m.getType()) || ValueType.INTEGER.equals(m.getType()) || ValueType.LONG.equals(m.getType()) || ValueType.FLOAT.equals(m.getType()) || ValueType.DOUBLE.equals(m.getType()) || ValueType.BIG_INTEGER.equals(m.getType()) || ValueType.BIG_DECIMAL.equals(m.getType())));
+        return isNumber((IValue) m);
     }
 
     public static boolean isString(IMessage m) {
-        return m != null && ValueType.STRING.equals(m.getType());
+        return isString((IValue) m);
     }
 
     public static boolean isBytes(IMessage m) {
-        return m != null && ValueType.BYTES.equals(m.getType());
+        return isBytes((IValue) m);
     }
 
     public static boolean isBoolean(IMessage m) {
-        return m != null && ValueType.BOOLEAN.equals(m.getType());
+        return isBoolean((IValue) m);
     }
 
     public static boolean isObjectArray(IMessage m) {
+        return isObjectArray((IValue) m);
+    }
+
+    public static boolean isNumber(IValue m) {
+        return m != null && ((ValueType.BYTE.equals(m.getType()) || ValueType.SHORT.equals(m.getType()) || ValueType.INTEGER.equals(m.getType()) || ValueType.LONG.equals(m.getType()) || ValueType.FLOAT.equals(m.getType()) || ValueType.DOUBLE.equals(m.getType()) || ValueType.BIG_INTEGER.equals(m.getType()) || ValueType.BIG_DECIMAL.equals(m.getType())));
+    }
+
+    public static boolean isString(IValue m) {
+        return m != null && ValueType.STRING.equals(m.getType());
+    }
+
+    public static boolean isBytes(IValue m) {
+        return m != null && ValueType.BYTES.equals(m.getType());
+    }
+
+    public static boolean isBoolean(IValue m) {
+        return m != null && ValueType.BOOLEAN.equals(m.getType());
+    }
+
+    public static boolean isObjectArray(IValue m) {
         return m != null && ValueType.OBJECT_ARRAY.equals(m.getType());
     }
 
