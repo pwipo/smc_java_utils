@@ -1383,4 +1383,16 @@ public class ModuleUtils {
         return objectElement;
     }
 
+    public static LinkedList<IMessage> toLinkedList(IAction action) {
+        return new LinkedList<>(action.getMessages());
+    }
+
+    public static Optional<LinkedList<IMessage>> getLastActionWithDataList(List<IAction> actions) {
+        return getLastActionWithData(actions).map(ModuleUtils::toLinkedList);
+    }
+
+    public static Optional<LinkedList<IMessage>> getFirstActionWithDataList(List<IAction> actions) {
+        return getFirstActionWithData(actions).map(ModuleUtils::toLinkedList);
+    }
+
 }
