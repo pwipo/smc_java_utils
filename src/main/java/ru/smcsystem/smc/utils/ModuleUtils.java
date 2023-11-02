@@ -44,6 +44,10 @@ public class ModuleUtils {
         return toBoolean((IValue) m);
     }
 
+    public static Number toNumber(IMessage m) {
+        return toNumber((IValue) m);
+    }
+
     public static ObjectArray getObjectArray(IMessage m) {
         return getObjectArray((IValue) m);
     }
@@ -99,6 +103,44 @@ public class ModuleUtils {
                 break;
             default:
                 result = ((Number) m.getValue()).intValue() > 0;
+                break;
+        }
+        return result;
+    }
+
+    public static Number toNumber(IValue m) {
+        if (m == null)
+            return null;
+        Number result;
+        switch (m.getType()) {
+            case STRING: {
+                String value = (String) m.getValue();
+                if (!value.isBlank()) {
+                    try {
+                        if (value.contains(".")) {
+                            result = Double.parseDouble(value);
+                        } else {
+                            result = Long.parseLong(value);
+                        }
+                    } catch (Exception e) {
+                        result = 0;
+                    }
+                } else {
+                    result = 0;
+                }
+                break;
+            }
+            case BOOLEAN:
+                result = (Boolean) m.getValue() ? 1 : 0;
+                break;
+            case BYTES:
+                result = ((byte[]) m.getValue()).length;
+                break;
+            case OBJECT_ARRAY:
+                result = ((ObjectArray) m.getValue()).size();
+                break;
+            default:
+                result = (Number) m.getValue();
                 break;
         }
         return result;
@@ -802,6 +844,44 @@ public class ModuleUtils {
         return result;
     }
 
+    public static Number toNumber(ObjectField m) {
+        if (m == null)
+            return null;
+        Number result;
+        switch (m.getType()) {
+            case STRING: {
+                String value = (String) m.getValue();
+                if (!value.isBlank()) {
+                    try {
+                        if (value.contains(".")) {
+                            result = Double.parseDouble(value);
+                        } else {
+                            result = Long.parseLong(value);
+                        }
+                    } catch (Exception e) {
+                        result = 0;
+                    }
+                } else {
+                    result = 0;
+                }
+                break;
+            }
+            case BOOLEAN:
+                result = (Boolean) m.getValue() ? 1 : 0;
+                break;
+            case BYTES:
+                result = ((byte[]) m.getValue()).length;
+                break;
+            case OBJECT_ARRAY:
+                result = ((ObjectArray) m.getValue()).size();
+                break;
+            default:
+                result = (Number) m.getValue();
+                break;
+        }
+        return result;
+    }
+
     public static ObjectElement getObjectElement(ObjectField m) {
         if (m == null)
             return null;
@@ -1249,11 +1329,7 @@ public class ModuleUtils {
                     value = f.getValue();
                     if (value != null) {
                         if (propertyType.equals(Boolean.class)) {
-                            if (isString(f)) {
-                                value = Boolean.parseBoolean((String) value);
-                            } else if (isNumber(f)) {
-                                value = ((Number) value).intValue() > 0;
-                            }
+                            value = toBoolean(f);
                         } else if (propertyType.equals(String.class)) {
                             value = value.toString();
                         } else if (List.class.isAssignableFrom(propertyType)) {
@@ -1261,23 +1337,11 @@ public class ModuleUtils {
                             Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                             value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
                         } else if (propertyType.equals(Date.class)) {
-                            if (isString(f)) {
-                                value = new Date(Long.parseLong((String) value));
-                            } else if (isNumber(f)) {
-                                value = new Date(((Number) value).longValue());
-                            }
+                            value = new Date(toNumber(f).longValue());
                         } else if (propertyType.equals(Instant.class)) {
-                            if (isString(f)) {
-                                value = Instant.ofEpochMilli(Long.parseLong((String) value));
-                            } else if (isNumber(f)) {
-                                value = Instant.ofEpochMilli(((Number) value).longValue());
-                            }
+                            value = Instant.ofEpochMilli(toNumber(f).longValue());
                         } else if (Number.class.isAssignableFrom(propertyType)) {
-                            if (isString(f)) {
-                                value = Long.parseLong((String) value);
-                            } else if (isBoolean(f)) {
-                                value = ((Boolean) value) ? 1 : 0;
-                            }
+                            value = toNumber(f);
                         } else {
                             ValueType valueTypeClass = getValueTypeClass(propertyType);
                             if (valueTypeClass == null)
@@ -1362,8 +1426,12 @@ public class ModuleUtils {
                                 // if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                                 value = convertToObjectElement(value, silent);
                         }
-                        if (value != null)
-                            objectField = new ObjectField(name, getObjectType(value), value);
+                        ObjectType objectType = getObjectType(value);
+                        if (objectType == null) {
+                            objectType = ObjectType.STRING;
+                            value = value.toString();
+                        }
+                        objectField = new ObjectField(name, objectType, value);
                     } else {
                         objectField = new ObjectField(name, convertTo(getValueTypeClass(getterMethod.getReturnType())), null);
                     }
