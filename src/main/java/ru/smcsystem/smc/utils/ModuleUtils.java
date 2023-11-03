@@ -1142,6 +1142,8 @@ public class ModuleUtils {
     }
 
     public static void waitThread(ExecutionContextTool executionContextTool, long threadId, int sleepTime) {
+        if (sleepTime < 1)
+            sleepTime = 1;
         do {
             try {
                 Thread.sleep(sleepTime);
