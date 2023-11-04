@@ -1256,14 +1256,15 @@ public class ModuleUtils {
     }
 
     public static void processMessages(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, CheckedConsumer<LinkedList<IMessage>> func) {
-        List<List<List<IMessage>>> messagesAll = ModuleUtils.getMessages(executionContextTool);
-        for (int i = 0; i < messagesAll.size(); i++) {
-            int id = i;
-            messagesAll.get(i).forEach(messagesList -> {
-                LinkedList<IMessage> messages = new LinkedList<>(messagesList);
-                executor(configurationTool, executionContextTool, id, messages, func);
-            });
+        for (int i = 0; i < executionContextTool.countSource(); i++)
+            processMessages(configurationTool, executionContextTool, i, func);
+    }
 
+    public static void processMessages(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, int id, CheckedConsumer<LinkedList<IMessage>> func) {
+        if (executionContextTool.countSource() > id) {
+            executionContextTool.getMessages(id).forEach(a -> executor(configurationTool, executionContextTool, id, new LinkedList<>(a.getMessages()), func));
+        } else {
+            executor(configurationTool, executionContextTool, id, null, func);
         }
     }
 
