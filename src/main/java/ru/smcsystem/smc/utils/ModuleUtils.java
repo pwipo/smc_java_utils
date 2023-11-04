@@ -1260,15 +1260,19 @@ public class ModuleUtils {
         for (int i = 0; i < messagesAll.size(); i++) {
             int id = i;
             messagesAll.get(i).forEach(messagesList -> {
-                try {
-                    LinkedList<IMessage> messages = new LinkedList<>(messagesList);
-                    func.accept(id, messages);
-                } catch (Exception e) {
-                    executionContextTool.addError(ModuleUtils.getErrorMessageOrClassName(e));
-                    configurationTool.loggerWarn(ModuleUtils.getStackTraceAsString(e));
-                }
+                LinkedList<IMessage> messages = new LinkedList<>(messagesList);
+                executor(configurationTool, executionContextTool, id, messages, func);
             });
 
+        }
+    }
+
+    public static void executor(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, int id, LinkedList<IMessage> messages, CheckedConsumer<LinkedList<IMessage>> func) {
+        try {
+            func.accept(id, messages);
+        } catch (Exception e) {
+            executionContextTool.addError(ModuleUtils.getErrorMessageOrClassName(e));
+            configurationTool.loggerWarn(ModuleUtils.getStackTraceAsString(e));
         }
     }
 
