@@ -4,8 +4,10 @@ import ru.smcsystem.api.dto.*;
 import ru.smcsystem.api.enumeration.*;
 import ru.smcsystem.api.tools.ConfigurationTool;
 import ru.smcsystem.api.tools.execution.ExecutionContextTool;
+import ru.smcsystem.smc.utils.converter.SmcConverter;
 
 import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.PrintWriter;
@@ -14,7 +16,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -882,6 +883,29 @@ public class ModuleUtils {
         return result;
     }
 
+    public static Number toNumber(Number number, Class<? extends Number> cls) {
+        if (number == null || cls == null)
+            return number;
+        if (Byte.class.isAssignableFrom(cls)) {
+            return number.byteValue();
+        } else if (Short.class.isAssignableFrom(cls)) {
+            return number.shortValue();
+        } else if (Integer.class.isAssignableFrom(cls)) {
+            return number.intValue();
+        } else if (Long.class.isAssignableFrom(cls)) {
+            return number.longValue();
+        } else if (Float.class.isAssignableFrom(cls)) {
+            return number.floatValue();
+        } else if (Double.class.isAssignableFrom(cls)) {
+            return number.doubleValue();
+        } else if (BigInteger.class.isAssignableFrom(cls)) {
+            return BigInteger.valueOf(number.longValue());
+        } else if (BigDecimal.class.isAssignableFrom(cls)) {
+            return BigDecimal.valueOf(number.doubleValue());
+        }
+        return number;
+    }
+
     public static ObjectElement getObjectElement(ObjectField m) {
         if (m == null)
             return null;
@@ -1136,9 +1160,13 @@ public class ModuleUtils {
     }
 
     public static long executeParallel(ExecutionContextTool executionContextTool, int ecId, List<Object> params, long maxWorkIntervalMs, int sleepTimeMs) {
-        long threadId = executionContextTool.getFlowControlTool().executeParallel(CommandType.EXECUTE, List.of(ecId), params, 0, (int) (maxWorkIntervalMs / 1000));
+        long threadId = executionContextTool.getFlowControlTool().executeParallel(CommandType.EXECUTE, List.of(ecId), params, 0, maxWorkIntervalMs > 0 ? (int) (maxWorkIntervalMs / 1000) : 0);
         waitThread(executionContextTool, threadId, sleepTimeMs);
         return threadId;
+    }
+
+    public static long executeParallel(ExecutionContextTool executionContextTool, int ecId, List<Object> params) {
+        return executeParallel(executionContextTool, ecId, params, 0, 50);
     }
 
     public static void waitThread(ExecutionContextTool executionContextTool, long threadId, int sleepTime) {
@@ -1287,47 +1315,81 @@ public class ModuleUtils {
     }
 
     public static <T> List<T> convertFromObjectArray(ObjectArray objectArray, Class<T> resultClass, boolean silent, boolean ignoreCaseInName) {
+        List<T> result = new ArrayList<>();
         if (objectArray == null || objectArray.size() == 0)
-            return List.of();
-        if (objectArray.isSimple()) {
-            return toList(objectArray).stream()
-                    .filter(o -> resultClass.isAssignableFrom(o.getClass()))
-                    .map(o -> (T) o)
-                    .collect(Collectors.toList());
-        } else if (isArrayContainArrays(objectArray) && List.class.isAssignableFrom(resultClass)) {
-            List<T> result = new ArrayList<>(objectArray.size());
-            for (int i = 0; i < objectArray.size(); i++) {
-                ObjectArray objectArrayElement = (ObjectArray) objectArray.get(i);
-                if (objectArrayElement.isSimple()) {
-                    result.add((T) Stream.iterate(0, n -> n + 1)
-                            .limit(objectArrayElement.size())
-                            .map(objectArrayElement::get)
-                            .collect(Collectors.toList()));
-                }
-            }
             return result;
-        } else if (isArrayContainObjectElements(objectArray)) {
-            return toList(objectArray).stream()
-                    .map(o -> convertFromObjectElement(o, resultClass, silent, ignoreCaseInName))
-                    .collect(Collectors.toList());
+        try {
+            if (objectArray.isSimple()) {
+                result = toList(objectArray).stream()
+                        .filter(o -> resultClass.isAssignableFrom(o.getClass()))
+                        .map(o -> (T) o)
+                        .collect(Collectors.toList());
+            } else if (isArrayContainArrays(objectArray) && List.class.isAssignableFrom(resultClass)) {
+                result = new ArrayList<>(objectArray.size());
+                for (int i = 0; i < objectArray.size(); i++) {
+                    ObjectArray objectArrayElement = (ObjectArray) objectArray.get(i);
+                    if (objectArrayElement.isSimple()) {
+                        result.add((T) Stream.iterate(0, n -> n + 1)
+                                .limit(objectArrayElement.size())
+                                .map(objectArrayElement::get)
+                                .collect(Collectors.toList()));
+                    }
+                }
+            } else if (isArrayContainObjectElements(objectArray)) {
+                List<ObjectElementDescriptor<T>> propertyDescriptors = buildPropertyDescriptors(resultClass);
+                result = toList(objectArray).stream()
+                        .map(o -> convertFromObjectElement(o, resultClass, silent, ignoreCaseInName, propertyDescriptors))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            if (!silent)
+                throw new RuntimeException(e);
         }
-        return List.of();
+        return result;
     }
 
-    public static <T> T convertFromObjectElement(ObjectElement objectElement, Class<T> resultClass, boolean silent, boolean ignoreCaseInName) {
+    private static <T> List<ObjectElementDescriptor<T>> buildPropertyDescriptors(Class<T> cls) throws IntrospectionException {
+        BeanInfo info = Introspector.getBeanInfo(cls);
+        List<ObjectElementDescriptor<T>> orderedList = new LinkedList<>();
+        List<ObjectElementDescriptor<T>> unorderList = new LinkedList<>();
+        Arrays.stream(info.getPropertyDescriptors())
+                .forEach(pd -> {
+                    try {
+                        ObjectElementDescriptor<T> objectElementDescriptor = new ObjectElementDescriptor<>(cls, pd);
+                        if (objectElementDescriptor.getSmcField() != null && objectElementDescriptor.getSmcField().order() > 0) {
+                            orderedList.add(objectElementDescriptor);
+                        } else {
+                            unorderList.add(objectElementDescriptor);
+                        }
+                    } catch (Exception ignore) {
+                    }
+                });
+        LinkedList<ObjectElementDescriptor<T>> result = new LinkedList<>();
+        orderedList.stream()
+                .sorted(Comparator.comparing(d -> d.getSmcField().order()))
+                .forEach(result::add);
+        result.addAll(unorderList);
+        return result;
+    }
+
+    public static <T> T convertFromObjectElement(ObjectElement objectElement, Class<T> resultClass, boolean silent, boolean ignoreCaseInName,
+                                                 List<ObjectElementDescriptor<T>> propertyDescriptors) {
+        T result = null;
         if (objectElement == null)
-            return null;
+            return result;
         try {
             T t = resultClass.getConstructor().newInstance();
-            BeanInfo info = Introspector.getBeanInfo(resultClass);
-            List<PropertyDescriptor> properties = Arrays.stream(info.getPropertyDescriptors()).collect(Collectors.toList());
-            for (ObjectField f : objectElement.getFields()) {
-                Optional<PropertyDescriptor> pOpt = properties.stream().filter(p -> ignoreCaseInName ? f.getName().equalsIgnoreCase(p.getName()) : f.getName().equals(p.getName())).findFirst();
-                if (pOpt.isEmpty())
+            if (propertyDescriptors == null)
+                propertyDescriptors = buildPropertyDescriptors(resultClass);
+            for (ObjectElementDescriptor<T> descriptor : propertyDescriptors) {
+                ObjectField f = ignoreCaseInName ? objectElement.findFieldIgnoreCase(descriptor.getName()).orElse(null) : objectElement.findField(descriptor.getName()).orElse(null);
+                PropertyDescriptor p = descriptor.getPropertyDescriptor();
+                if (f == null || p == null || p.getWriteMethod() == null) {
+                    if (descriptor.getSmcField() != null && descriptor.getSmcField().required())
+                        throw new RuntimeException(String.format("Field %s is required", descriptor.getName()));
                     continue;
-                PropertyDescriptor p = pOpt.get();
-                if (p.getWriteMethod() == null)
-                    continue;
+                }
                 String setter = p.getWriteMethod().getName();
                 Class<?> propertyType = p.getPropertyType();
                 Object value = null;
@@ -1335,7 +1397,9 @@ public class ModuleUtils {
                     Method setterMethod = resultClass.getDeclaredMethod(setter, propertyType);
                     value = f.getValue();
                     if (value != null) {
-                        if (propertyType.equals(Boolean.class)) {
+                        if (descriptor.getSmcConverter() != null) {
+                            value = descriptor.getSmcConverter().to(f, objectElement);
+                        } else if (propertyType.equals(Boolean.class)) {
                             value = toBoolean(f);
                         } else if (propertyType.equals(String.class)) {
                             value = value.toString();
@@ -1343,74 +1407,90 @@ public class ModuleUtils {
                             ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
                             Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                             value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
-                        } else if (propertyType.equals(Date.class)) {
-                            value = new Date(toNumber(f).longValue());
-                        } else if (propertyType.equals(Instant.class)) {
-                            value = Instant.ofEpochMilli(toNumber(f).longValue());
                         } else if (Number.class.isAssignableFrom(propertyType)) {
-                            value = toNumber(f);
+                            value = toNumber(toNumber(f), (Class<? extends Number>) propertyType);
                         } else {
                             ValueType valueTypeClass = getValueTypeClass(propertyType);
                             if (valueTypeClass == null)
-                                value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName);
+                                value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName, null);
                         }
-                        if (value != null)
-                            setterMethod.invoke(t, value);
+                    }
+                    if (value != null) {
+                        setterMethod.invoke(t, value);
+                    } else if (descriptor.getSmcField() != null && descriptor.getSmcField().required()) {
+                        throw new RuntimeException(String.format("Field %s is required", descriptor.getName()));
                     }
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(setter + " " + propertyType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
+                        throw new RuntimeException(String.format("Field %s setter=%s, type=%s, valueType=%s", descriptor.getName(), setter, propertyType.getName(), (value != null ? value.getClass().getName() : "")), e);
                 }
             }
-            return t;
+            result = t;
         } catch (Exception e) {
             if (!silent)
                 throw new RuntimeException(e);
         }
-        return null;
+        return result;
     }
 
     public static <T> ObjectArray convertToObjectArray(List<T> t, Class<T> resultClass, boolean silent) {
-        ObjectArray objectArray = null;
+        ObjectArray result = new ObjectArray();
         if (t == null)
-            return new ObjectArray();
-        if (List.class.isAssignableFrom(resultClass)) {
-            ObjectArray objectArrayTmp = new ObjectArray(ObjectType.OBJECT_ARRAY);
-            t.stream()
-                    .map(o -> (List<Object>) o)
-                    .filter(l -> !l.isEmpty())
-                    .forEach(l -> {
-                        Object o = l.get(0);
-                        ObjectType objectType = convertTo(getValueTypeObject(o));
-                        if (objectType != null && objectType != ObjectType.OBJECT_ARRAY)
-                            objectArrayTmp.add(new ObjectArray(l, objectType));
-                    });
-            objectArray = objectArrayTmp;
-        } else {
-            ObjectType objectType = convertTo(getValueTypeClass(resultClass));
-            if (objectType != null && objectType != ObjectType.OBJECT_ARRAY) {
-                objectArray = new ObjectArray((List<Object>) t, objectType);
+            return result;
+        try {
+            if (List.class.isAssignableFrom(resultClass)) {
+                ObjectArray objectArrayTmp = new ObjectArray(ObjectType.OBJECT_ARRAY);
+                t.stream()
+                        .map(o -> (List<Object>) o)
+                        .filter(l -> !l.isEmpty())
+                        .forEach(l -> {
+                            Object o = l.get(0);
+                            ObjectType objectType = convertTo(getValueTypeObject(o));
+                            if (objectType != null && objectType != ObjectType.OBJECT_ARRAY)
+                                objectArrayTmp.add(new ObjectArray(l, objectType));
+                        });
+                result = objectArrayTmp;
             } else {
-                objectArray = new ObjectArray(
-                        t.stream()
-                                .map(o -> convertToObjectElement(o, silent))
-                                .collect(Collectors.toList()),
-                        ObjectType.OBJECT_ELEMENT);
+                ObjectType objectType = convertTo(getValueTypeClass(resultClass));
+                if (objectType != null && objectType != ObjectType.OBJECT_ARRAY) {
+                    result = new ObjectArray((List<Object>) t, objectType);
+                } else {
+                    List<ObjectElementDescriptor<T>> propertyDescriptors = buildPropertyDescriptors(resultClass);
+                    result = new ObjectArray(
+                            t.stream()
+                                    .map(o -> convertToObjectElement(o, silent, propertyDescriptors))
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList()),
+                            ObjectType.OBJECT_ELEMENT);
+                }
             }
+        } catch (Exception e) {
+            if (!silent)
+                throw new RuntimeException(e);
         }
-        return objectArray;
+        return result;
     }
 
-    public static <T> ObjectElement convertToObjectElement(T t, boolean silent) {
-        ObjectElement objectElement = new ObjectElement();
+    private static <T> ObjectField convertFrom(SmcConverter<?> converter, String name, T v, ObjectElement objectElement) throws Exception {
+        return ((SmcConverter<T>) converter).from(name, v, objectElement);
+    }
+
+    public static <T> ObjectElement convertToObjectElement(T t, boolean silent, List<ObjectElementDescriptor<T>> propertyDescriptors) {
+        ObjectElement result = null;
         if (t == null)
-            return objectElement;
+            return result;
         try {
+            ObjectElement objectElement = new ObjectElement();
             Class<?> resultClass = t.getClass();
-            BeanInfo info = Introspector.getBeanInfo(resultClass);
-            PropertyDescriptor[] props = info.getPropertyDescriptors();
-            for (PropertyDescriptor p : props) {
-                String name = p.getName();
+            if (propertyDescriptors == null)
+                propertyDescriptors = buildPropertyDescriptors((Class<T>) resultClass);
+            for (ObjectElementDescriptor<T> descriptor : propertyDescriptors) {
+                PropertyDescriptor p = descriptor.getPropertyDescriptor();
+                if (p == null || p.getWriteMethod() == null) {
+                    if (descriptor.getSmcField() != null && descriptor.getSmcField().required())
+                        throw new RuntimeException(String.format("Field %s is required", descriptor.getName()));
+                    continue;
+                }
                 String getter = p.getReadMethod().getName();
                 Class<?> propertyType = p.getPropertyType();
                 Object value = null;
@@ -1419,43 +1499,51 @@ public class ModuleUtils {
                     value = getterMethod.invoke(t);
                     ObjectField objectField = null;
                     if (value != null) {
-                        if (List.class.isAssignableFrom(propertyType)) {
+                        if (descriptor.getSmcConverter() != null) {
+                            objectField = convertFrom(descriptor.getSmcConverter(), descriptor.getName(), value, objectElement);
+                        } else if (List.class.isAssignableFrom(propertyType)) {
                             ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
                             Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                             value = convertToObjectArray((List) value, pClass, silent);
-                        } else if (propertyType.equals(Date.class)) {
-                            value = ((Date) value).getTime();
-                        } else if (propertyType.equals(Instant.class)) {
-                            value = ((Instant) value).toEpochMilli();
                         } else {
                             ValueType valueTypeClass = getValueTypeClass(propertyType);
-                            if (valueTypeClass == null)
+                            if (valueTypeClass == null) {
                                 // if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
-                                value = convertToObjectElement(value, silent);
+                                value = convertToObjectElement(value, silent, null);
+                            }
                         }
-                        ObjectType objectType = getObjectType(value);
-                        if (objectType == null) {
-                            objectType = ObjectType.STRING;
-                            value = value.toString();
+                    }
+                    if (objectField == null) {
+                        if (value != null) {
+                            ObjectType objectType = getObjectType(value);
+                            if (objectType == null) {
+                                objectType = ObjectType.STRING;
+                                value = value.toString();
+                            }
+                            objectField = new ObjectField(descriptor.getName(), objectType, value);
+                        } else {
+                            if (descriptor.getSmcField() != null && descriptor.getSmcField().required()) {
+                                throw new RuntimeException(String.format("Field %s is required", descriptor.getName()));
+                            } else {
+                                objectField = new ObjectField(descriptor.getName(), convertTo(getValueTypeClass(getterMethod.getReturnType())), null);
+                            }
                         }
-                        objectField = new ObjectField(name, objectType, value);
-                    } else {
-                        objectField = new ObjectField(name, convertTo(getValueTypeClass(getterMethod.getReturnType())), null);
                     }
                     objectElement.getFields().add(objectField);
                 } catch (NoSuchMethodException e) {
-                    if (!Objects.equals(name, "class") && !silent)
-                        throw new RuntimeException(getter + " " + propertyType.getName(), e);
+                    if (!Objects.equals(descriptor.getName(), "class") && !silent)
+                        throw new RuntimeException(String.format("Field %s getter=%s, type=%s", descriptor.getName(), getter, propertyType.getName()), e);
                 } catch (Exception e) {
                     if (!silent)
-                        throw new RuntimeException(getter + " " + propertyType.getName() + " " + (value != null ? value.getClass().getName() : ""), e);
+                        throw new RuntimeException(String.format("Field %s getter=%s, type=%s, valueType=%s", descriptor.getName(), getter, propertyType.getName(), (value != null ? value.getClass().getName() : "")), e);
                 }
             }
+            result = objectElement;
         } catch (Exception e) {
             if (!silent)
                 throw new RuntimeException(e);
         }
-        return objectElement;
+        return result;
     }
 
     public static LinkedList<IMessage> toLinkedList(IAction action) {
