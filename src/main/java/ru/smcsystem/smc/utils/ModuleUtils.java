@@ -1399,20 +1399,22 @@ public class ModuleUtils {
                     if (value != null) {
                         if (descriptor.getSmcConverter() != null) {
                             value = descriptor.getSmcConverter().to(f, objectElement);
-                        } else if (propertyType.equals(Boolean.class)) {
-                            value = toBoolean(f);
-                        } else if (propertyType.equals(String.class)) {
-                            value = value.toString();
-                        } else if (List.class.isAssignableFrom(propertyType)) {
-                            ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
-                            Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
-                            value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
-                        } else if (Number.class.isAssignableFrom(propertyType)) {
-                            value = toNumber(toNumber(f), (Class<? extends Number>) propertyType);
-                        } else {
-                            ValueType valueTypeClass = getValueTypeClass(propertyType);
-                            if (valueTypeClass == null)
-                                value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName, null);
+                        } else if (!propertyType.isAssignableFrom(value.getClass())) {
+                            if (propertyType.equals(Boolean.class)) {
+                                value = toBoolean(f);
+                            } else if (propertyType.equals(String.class)) {
+                                value = toString(f);
+                            } else if (List.class.isAssignableFrom(propertyType)) {
+                                ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
+                                Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
+                                value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
+                            } else if (Number.class.isAssignableFrom(propertyType)) {
+                                value = toNumber(toNumber(f), (Class<? extends Number>) propertyType);
+                            } else {
+                                ValueType valueTypeClass = getValueTypeClass(propertyType);
+                                if (valueTypeClass == null)
+                                    value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName, null);
+                            }
                         }
                     }
                     if (value != null) {
