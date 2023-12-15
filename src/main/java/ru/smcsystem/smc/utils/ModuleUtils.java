@@ -17,6 +17,9 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1558,6 +1561,26 @@ public class ModuleUtils {
 
     public static Optional<LinkedList<IMessage>> getFirstActionWithDataList(List<IAction> actions) {
         return getFirstActionWithData(actions).map(ModuleUtils::toLinkedList);
+    }
+
+    public static void executeTasksInSeparateThreadPool(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, int countThreads, List<Runnable> runnableList) {
+        ExecutorService executorService = Executors.newFixedThreadPool(countThreads);
+        runnableList.forEach(r -> executorService.execute(() -> {
+            try {
+                r.run();
+            } catch (Exception e) {
+                configurationTool.loggerWarn(ModuleUtils.getStackTraceAsString(e));
+            }
+        }));
+        try {
+            executorService.shutdown();
+            while (!executorService.awaitTermination(1, TimeUnit.SECONDS) && !executionContextTool.isNeedStop())
+                ;
+        } catch (InterruptedException ignore) {
+        } finally {
+            if (!executorService.isShutdown() || !executorService.isTerminated())
+                executorService.shutdownNow();
+        }
     }
 
 }
