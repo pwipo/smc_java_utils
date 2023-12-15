@@ -1578,8 +1578,10 @@ public class ModuleUtils {
                 ;
         } catch (InterruptedException ignore) {
         } finally {
-            if (!executorService.isShutdown() || !executorService.isTerminated())
+            if (!executorService.isShutdown() || !executorService.isTerminated()) {
+                configurationTool.loggerDebug("Thread pool not stopped, execute shutdownNow");
                 executorService.shutdownNow();
+            }
         }
     }
 
