@@ -1223,65 +1223,67 @@ public class ModuleUtils {
     }
 
     public static Optional<ObjectElement> executeAndGetElement(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
-        return getElement(executionContextTool.getFlowControlTool().getMessagesFromExecuted(id));
+        return getElement(executeAndGet(executionContextTool, id, params));
     }
 
     public static Optional<ObjectArray> executeAndGetArrayElements(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
-        return getElements(executionContextTool.getFlowControlTool().getMessagesFromExecuted(id));
+        return getElements(executeAndGet(executionContextTool, id, params));
     }
 
     public static <T> Optional<T> executeAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
-        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
-        return getElement(executionContextTool.getFlowControlTool().getMessagesFromExecuted(id))
+        return getElement(executeAndGet(executionContextTool, id, params))
                 .map(e -> convertFromObjectElement(e, cls, true, false, null));
     }
 
     public static <T> Optional<List<T>> executeAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
-        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
-        return getElements(executionContextTool.getFlowControlTool().getMessagesFromExecuted(id))
-                .map(e -> convertFromObjectArray(e, cls, true, false))
-                .filter(l -> !l.isEmpty());
-    }
-
-    public static Optional<ObjectElement> executeParallelAndGetElement(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        long threadId = executeParallel(executionContextTool, id, params);
-        List<IAction> data = executionContextTool.getFlowControlTool().getMessagesFromExecuted(threadId, id);
-        executionContextTool.getFlowControlTool().releaseThread(threadId);
-        return getElement(data);
-    }
-
-    public static Optional<ObjectArray> executeParallelAndGetArrayElements(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        long threadId = executeParallel(executionContextTool, id, params);
-        List<IAction> data = executionContextTool.getFlowControlTool().getMessagesFromExecuted(threadId, id);
-        executionContextTool.getFlowControlTool().releaseThread(threadId);
-        return getElements(data);
-    }
-
-    public static <T> Optional<T> executeParallelAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
-        long threadId = executeParallel(executionContextTool, id, params);
-        List<IAction> data = executionContextTool.getFlowControlTool().getMessagesFromExecuted(threadId, id);
-        executionContextTool.getFlowControlTool().releaseThread(threadId);
-        return getElement(data)
-                .map(e -> convertFromObjectElement(e, cls, true, false, null));
-    }
-
-    public static <T> Optional<List<T>> executeParallelAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
-        long threadId = executeParallel(executionContextTool, id, params);
-        List<IAction> data = executionContextTool.getFlowControlTool().getMessagesFromExecuted(threadId, id);
-        executionContextTool.getFlowControlTool().releaseThread(threadId);
-        return getElements(data)
+        return getElements(executeAndGet(executionContextTool, id, params))
                 .map(e -> convertFromObjectArray(e, cls, true, false))
                 .filter(l -> !l.isEmpty());
     }
 
     public static Optional<List<IMessage>> executeAndGetMessages(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
-        return executionContextTool.getFlowControlTool().getMessagesFromExecuted(id).stream()
+        return executeAndGet(executionContextTool, id, params).stream()
                 .filter(ModuleUtils::hasData)
                 .map(IAction::getMessages)
                 .findFirst();
+    }
+
+    public static List<IAction> executeAndGet(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
+        return executionContextTool.getFlowControlTool().getMessagesFromExecuted(id);
+    }
+
+    public static Optional<ObjectElement> executeParallelAndGetElement(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return getElement(executeParallelAndGet(executionContextTool, id, params));
+    }
+
+    public static Optional<ObjectArray> executeParallelAndGetArrayElements(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return getElements(executeParallelAndGet(executionContextTool, id, params));
+    }
+
+    public static <T> Optional<T> executeParallelAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+        return getElement(executeParallelAndGet(executionContextTool, id, params))
+                .map(e -> convertFromObjectElement(e, cls, true, false, null));
+    }
+
+    public static <T> Optional<List<T>> executeParallelAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+        return getElements(executeParallelAndGet(executionContextTool, id, params))
+                .map(e -> convertFromObjectArray(e, cls, true, false))
+                .filter(l -> !l.isEmpty());
+    }
+
+    public static Optional<List<IMessage>> executeParallelAndGetMessages(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return executeParallelAndGet(executionContextTool, id, params).stream()
+                .filter(ModuleUtils::hasData)
+                .map(IAction::getMessages)
+                .findFirst();
+    }
+
+    public static List<IAction> executeParallelAndGet(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        long threadId = executeParallel(executionContextTool, id, params);
+        List<IAction> data = executionContextTool.getFlowControlTool().getMessagesFromExecuted(threadId, id);
+        executionContextTool.getFlowControlTool().releaseThread(threadId);
+        return data;
     }
 
     public static String getStackTraceAsString(Throwable t) {
@@ -1343,13 +1345,20 @@ public class ModuleUtils {
         }
     }
 
-    public static void executor(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, int id, LinkedList<IMessage> messages, CheckedConsumer<LinkedList<IMessage>> func) {
+    public static <T> void executor(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, int id, T messages, CheckedConsumer<T> func) {
         try {
             func.accept(id, messages);
         } catch (Exception e) {
             executionContextTool.addError(ModuleUtils.getErrorMessageOrClassName(e));
             configurationTool.loggerWarn(ModuleUtils.getStackTraceAsString(e));
         }
+    }
+
+    public static void processMessagesAll(ConfigurationTool configurationTool, ExecutionContextTool executionContextTool, CheckedConsumer<List<LinkedList<IMessage>>> func) {
+        ArrayList<LinkedList<IMessage>> data = new ArrayList<>(executionContextTool.countSource());
+        for (int i = 0; i < executionContextTool.countSource(); i++)
+            data.add(getLastActionWithData(executionContextTool.getMessages(i)).map(IAction::getMessages).map(LinkedList::new).orElse(new LinkedList<>()));
+        executor(configurationTool, executionContextTool, -1, data, func);
     }
 
     public static List<ObjectElement> toList(ObjectArray objectArray) {
