@@ -154,6 +154,67 @@ public class ModuleUtils {
         return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
     }
 
+    public static ObjectArray toObjectArray(IValue m) {
+        if (m == null)
+            return new ObjectArray();
+        ObjectArray objectArray = null;
+        switch (m.getType()) {
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN:
+                objectArray = new ObjectArray(List.of(m.getValue()), convertTo(m.getType()));
+                break;
+            case OBJECT_ARRAY:
+                objectArray = (ObjectArray) m.getValue();
+                break;
+        }
+        return objectArray != null ? objectArray : new ObjectArray();
+    }
+
+    public static ObjectElement toObjectElement(IValue m) {
+        if (m == null)
+            return new ObjectElement();
+        ObjectElement objectElement = null;
+        switch (m.getType()) {
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN: {
+                ObjectField objectField = new ObjectField("0");
+                objectField.setValue(convertTo(m.getType()), m.getValue());
+                objectElement = new ObjectElement(List.of(objectField));
+                break;
+            }
+            case OBJECT_ARRAY: {
+                ObjectArray objectArray = (ObjectArray) m.getValue();
+                if (isArrayContainObjectElements(objectArray)) {
+                    objectElement = (ObjectElement) objectArray.get(0);
+                } else if (objectArray.isSimple() && objectArray.size() > 0) {
+                    objectElement = new ObjectElement();
+                    for (int i = 0; i < objectArray.size(); i++)
+                        objectElement.getFields().add(new ObjectField(String.valueOf(i), objectArray.getType(), objectArray.get(i)));
+                }
+                break;
+            }
+        }
+        return objectElement != null ? objectElement : new ObjectElement();
+    }
+
     /**
      * deserialize messages to object array
      * if first message type ObjectArray, when return it
@@ -937,6 +998,75 @@ public class ModuleUtils {
             return new ArrayList<>(List.of((ObjectElement) m.getValue()));
         }
         return null;
+    }
+
+    public static ObjectArray toObjectArray(ObjectField m) {
+        if (m == null)
+            return new ObjectArray();
+        ObjectArray objectArray = null;
+        switch (m.getType()) {
+            case VALUE_ANY:
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN:
+                objectArray = new ObjectArray(List.of(m.getValue()), m.getType());
+                break;
+            case OBJECT_ARRAY:
+                objectArray = (ObjectArray) m.getValue();
+                break;
+            case OBJECT_ELEMENT:
+                objectArray = new ObjectArray((ObjectElement) m.getValue());
+                break;
+        }
+        return objectArray != null ? objectArray : new ObjectArray();
+    }
+
+    public static ObjectElement toObjectElement(ObjectField m) {
+        if (m == null)
+            return new ObjectElement();
+        ObjectElement objectElement = null;
+        switch (m.getType()) {
+            case VALUE_ANY:
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN: {
+                ObjectField objectField = new ObjectField("0");
+                objectField.setValue(m.getType(), m.getValue());
+                objectElement = new ObjectElement(List.of(objectField));
+                break;
+            }
+            case OBJECT_ARRAY: {
+                ObjectArray objectArray = (ObjectArray) m.getValue();
+                if (isArrayContainObjectElements(objectArray)) {
+                    objectElement = (ObjectElement) objectArray.get(0);
+                } else if (objectArray.isSimple() && objectArray.size() > 0) {
+                    objectElement = new ObjectElement();
+                    for (int i = 0; i < objectArray.size(); i++)
+                        objectElement.getFields().add(new ObjectField(String.valueOf(i), objectArray.getType(), objectArray.get(i)));
+                }
+                break;
+            }
+            case OBJECT_ELEMENT:
+                objectElement = (ObjectElement) m.getValue();
+                break;
+        }
+        return objectElement != null ? objectElement : new ObjectElement();
     }
 
     public static boolean isSameFields(ObjectArray objectArray) {
