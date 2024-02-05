@@ -1559,8 +1559,12 @@ public class ModuleUtils {
         return result;
     }
 
-    public static <T> T convertFromObjectElement(ObjectElement objectElement, Class<T> resultClass, boolean silent, boolean ignoreCaseInName,
-                                                 List<ObjectElementDescriptor<T>> propertyDescriptors) {
+    public static <T> T convertFromObjectElement(ObjectElement objectElement, Class<T> resultClass, boolean silent, boolean ignoreCaseInName) {
+        return convertFromObjectElement(objectElement, resultClass, silent, ignoreCaseInName, null);
+    }
+
+    private static <T> T convertFromObjectElement(ObjectElement objectElement, Class<T> resultClass, boolean silent, boolean ignoreCaseInName,
+                                                  List<ObjectElementDescriptor<T>> propertyDescriptors) {
         T result = null;
         if (objectElement == null)
             return result;
@@ -1663,7 +1667,11 @@ public class ModuleUtils {
         return ((SmcConverter<T>) converter).from(name, v, objectElement);
     }
 
-    public static <T> ObjectElement convertToObjectElement(T t, boolean silent, List<ObjectElementDescriptor<T>> propertyDescriptors) {
+    public static <T> ObjectElement convertToObjectElement(T t, boolean silent) {
+        return convertToObjectElement(t, silent, null);
+    }
+
+    private static <T> ObjectElement convertToObjectElement(T t, boolean silent, List<ObjectElementDescriptor<T>> propertyDescriptors) {
         ObjectElement result = null;
         if (t == null)
             return result;
