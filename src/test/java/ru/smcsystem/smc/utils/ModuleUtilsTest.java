@@ -29,7 +29,8 @@ public class ModuleUtilsTest {
                                 new ObjectField("value_4", 4),
                                 new ObjectField("value5", 5),
                                 new ObjectField("date", date.getTime()),
-                                new ObjectField("instant", now.toEpochMilli())
+                                new ObjectField("instant", now.toEpochMilli()),
+                                new ObjectField("objType", "TWO")
                         ),
                         new ObjectElement(
                                 new ObjectField("name", "obj2")
@@ -45,6 +46,7 @@ public class ModuleUtilsTest {
         assertEquals(testObject.getValue5(), BigInteger.valueOf(5));
         assertEquals(testObject.getDate(), date);
         assertEquals(testObject.getInstant(), now);
+        assertEquals(testObject.getObjType(), ObjType.TWO);
     }
 
     @Test
@@ -60,10 +62,11 @@ public class ModuleUtilsTest {
         testObject.setValue5(BigInteger.valueOf(5));
         testObject.setDate(date);
         testObject.setInstant(now);
+        testObject.setObjType(ObjType.THREE);
         ObjectArray objectArray = ModuleUtils.convertToObjectArray(List.of(testObject), TestObject.class, true);
         assertEquals(objectArray.size(), 1);
         ObjectElement objectElement = (ObjectElement) objectArray.get(0);
-        assertEquals(objectElement.getFields().size(), 8);
+        assertEquals(objectElement.getFields().size(), 9);
         System.out.println(objectElement);
         assertEquals(objectElement.getFields().get(0).getValue(), "obj1");
         assertEquals(objectElement.getFields().get(3).getValue(), (Long) 1L);
@@ -72,6 +75,7 @@ public class ModuleUtilsTest {
         assertEquals(objectElement.getFields().get(2).getValue(), BigDecimal.valueOf(4.));
         assertEquals(objectElement.getFields().get(5).getValue(), date.getTime());
         assertEquals(objectElement.getFields().get(6).getValue(), now.toEpochMilli());
-        assertEquals(objectElement.getFields().get(7).getValue(), BigInteger.valueOf(5));
+        assertEquals(objectElement.getFields().get(8).getValue(), BigInteger.valueOf(5));
+        assertEquals(objectElement.getFields().get(7).getValue(), ObjType.THREE.name());
     }
 }

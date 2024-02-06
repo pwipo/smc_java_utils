@@ -1,6 +1,7 @@
 package ru.smcsystem.smc.utils;
 
 import ru.smcsystem.smc.utils.converter.SmcConverterDate;
+import ru.smcsystem.smc.utils.converter.SmcConverterEnumName;
 import ru.smcsystem.smc.utils.converter.SmcConverterInstant;
 
 import java.math.BigDecimal;
@@ -24,6 +25,8 @@ public class TestObject {
     private Date date;
     @SmcField(converter = SmcConverterInstant.class)
     private Instant instant;
+    @SmcField(converter = SmcConverterEnumName.class)
+    private ObjType objType;
 
     public String getName() {
         return name;
@@ -87,5 +90,13 @@ public class TestObject {
 
     public void setInstant(Instant instant) {
         this.instant = instant;
+    }
+
+    public ObjType getObjType() {
+        return objType;
+    }
+
+    public void setObjType(ObjType objType) {
+        this.objType = objType;
     }
 }

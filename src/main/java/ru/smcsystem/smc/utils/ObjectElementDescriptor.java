@@ -3,6 +3,7 @@ package ru.smcsystem.smc.utils;
 import ru.smcsystem.smc.utils.converter.SmcConverter;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
@@ -16,7 +17,16 @@ public class ObjectElementDescriptor<T> {
         this.propertyDescriptor = propertyDescriptor;
         this.smcField = cls.getDeclaredField(propertyDescriptor.getName()).getAnnotation(SmcField.class);
         this.name = smcField != null && !Objects.equals(smcField.name(), "##default") ? smcField.name() : propertyDescriptor.getName();
-        this.smcConverter = smcField != null && smcField.converter() != SmcConverter.None.class ? smcField.converter().getConstructor().newInstance() : null;
+        SmcConverter<?> smcConverterTmp = null;
+        if (smcField != null && smcField.converter() != SmcConverter.None.class) {
+            Constructor<?> constructor = smcField.converter().getConstructors()[0];
+            if (constructor.getParameterCount() == 1) {
+                smcConverterTmp = (SmcConverter<?>) constructor.newInstance(propertyDescriptor.getPropertyType());
+            } else if (constructor.getParameterCount() == 0) {
+                smcConverterTmp = (SmcConverter<?>) constructor.newInstance();
+            }
+        }
+        this.smcConverter = smcConverterTmp;
     }
 
     public String getName() {
