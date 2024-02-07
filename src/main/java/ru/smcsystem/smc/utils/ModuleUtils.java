@@ -817,6 +817,40 @@ public class ModuleUtils {
                 && a.getMessages().stream().anyMatch(m -> MessageType.DATA.equals(m.getMessageType()));
     }
 
+    public static List<IMessage> getErrors(IAction a) {
+        if (a == null)
+            return List.of();
+        return a.getMessages().stream()
+                .filter(m -> MessageType.ERROR.equals(m.getMessageType()) || MessageType.ACTION_ERROR.equals(m.getMessageType()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<List<IMessage>> getErrors(ICommand c) {
+        if (c == null)
+            return List.of();
+        return c.getActions().stream()
+                .map(ModuleUtils::getErrors)
+                .filter(l -> !l.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static List<IMessage> getData(IAction a) {
+        if (a == null)
+            return List.of();
+        return a.getMessages().stream()
+                .filter(m -> MessageType.DATA.equals(m.getMessageType()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<List<IMessage>> getData(ICommand c) {
+        if (c == null)
+            return List.of();
+        return c.getActions().stream()
+                .map(ModuleUtils::getData)
+                .filter(l -> !l.isEmpty())
+                .collect(Collectors.toList());
+    }
+
     public static boolean isArrayContainObjectElements(ObjectArray objectArray) {
         return objectArray != null && objectArray.size() > 0 && ObjectType.OBJECT_ELEMENT == objectArray.getType();
     }
