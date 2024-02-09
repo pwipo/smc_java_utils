@@ -1376,6 +1376,18 @@ public class ModuleUtils {
                 .collect(Collectors.toList()));
     }
 
+    public static Optional<IAction> getFirstActionExecuteWithMessages(List<IAction> actions) {
+        return actions.stream()
+                .filter(a -> a.getType() == ActionType.EXECUTE && !a.getMessages().isEmpty())
+                .findFirst();
+    }
+
+    public static Optional<IAction> getLastActionExecuteWithMessages(List<IAction> actions) {
+        return actions.stream()
+                .filter(a -> a.getType() == ActionType.EXECUTE && !a.getMessages().isEmpty())
+                .reduce((first, second) -> second);
+    }
+
     public static Optional<ObjectArray> getElements(List<IAction> actions) {
         return getFirstActionWithData(actions)
                 .map(a -> ModuleUtils.deserializeToObject(new LinkedList<>(a.getMessages())))
