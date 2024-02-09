@@ -1382,10 +1382,22 @@ public class ModuleUtils {
                 .findFirst();
     }
 
+    public static Optional<IAction> getFirstActionExecuteWithMessagesFromCommands(List<ICommand> commands) {
+        return getFirstActionExecuteWithMessages(commands.stream()
+                .flatMap(c -> c.getActions().stream())
+                .collect(Collectors.toList()));
+    }
+
     public static Optional<IAction> getLastActionExecuteWithMessages(List<IAction> actions) {
         return actions.stream()
                 .filter(a -> a.getType() == ActionType.EXECUTE && !a.getMessages().isEmpty())
                 .reduce((first, second) -> second);
+    }
+
+    public static Optional<IAction> getLastActionExecuteWithMessagesFromCommands(List<ICommand> commands) {
+        return getLastActionExecuteWithMessages(commands.stream()
+                .flatMap(c -> c.getActions().stream())
+                .collect(Collectors.toList()));
     }
 
     public static Optional<ObjectArray> getElements(List<IAction> actions) {
