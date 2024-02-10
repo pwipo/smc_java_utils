@@ -984,21 +984,21 @@ public class ModuleUtils {
     public static Number toNumber(Number number, Class<? extends Number> cls) {
         if (number == null || cls == null)
             return number;
-        if (Byte.class.isAssignableFrom(cls)) {
+        if (Byte.class.equals(cls)) {
             return number.byteValue();
-        } else if (Short.class.isAssignableFrom(cls)) {
+        } else if (Short.class.equals(cls)) {
             return number.shortValue();
-        } else if (Integer.class.isAssignableFrom(cls)) {
+        } else if (Integer.class.equals(cls)) {
             return number.intValue();
-        } else if (Long.class.isAssignableFrom(cls)) {
+        } else if (Long.class.equals(cls)) {
             return number.longValue();
-        } else if (Float.class.isAssignableFrom(cls)) {
+        } else if (Float.class.equals(cls)) {
             return number.floatValue();
-        } else if (Double.class.isAssignableFrom(cls)) {
+        } else if (Double.class.equals(cls)) {
             return number.doubleValue();
-        } else if (BigInteger.class.isAssignableFrom(cls)) {
+        } else if (BigInteger.class.equals(cls)) {
             return BigInteger.valueOf(number.longValue());
-        } else if (BigDecimal.class.isAssignableFrom(cls)) {
+        } else if (BigDecimal.class.equals(cls)) {
             return BigDecimal.valueOf(number.doubleValue());
         }
         return number;
@@ -1658,7 +1658,7 @@ public class ModuleUtils {
                                 value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
                             } else if (Number.class.isAssignableFrom(propertyType)) {
                                 value = toNumber(toNumber(f), (Class<? extends Number>) propertyType);
-                            } else {
+                            } else if (!Object.class.equals(propertyType)) {
                                 ValueType valueTypeClass = getValueTypeClass(propertyType);
                                 if (valueTypeClass == null)
                                     value = convertFromObjectElement(getObjectElement(f), propertyType, silent, ignoreCaseInName, null);
@@ -1760,7 +1760,7 @@ public class ModuleUtils {
                             Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
                             value = convertToObjectArray((List) value, pClass, silent);
                         } else {
-                            ValueType valueTypeClass = getValueTypeClass(propertyType);
+                            ValueType valueTypeClass = getValueTypeClass(Object.class.equals(propertyType) ? value.getClass() : propertyType);
                             if (valueTypeClass == null) {
                                 // if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                                 value = convertToObjectElement(value, silent, null);
