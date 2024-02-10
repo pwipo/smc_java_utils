@@ -1418,14 +1418,14 @@ public class ModuleUtils {
         return getElements(executeAndGet(executionContextTool, id, params));
     }
 
-    public static <T> Optional<T> executeAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+    public static <T> Optional<T> executeAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls, boolean ignoreCaseInName) {
         return getElement(executeAndGet(executionContextTool, id, params))
-                .map(e -> convertFromObjectElement(e, cls, true, false, null));
+                .map(e -> convertFromObjectElement(e, cls, true, ignoreCaseInName, null));
     }
 
-    public static <T> Optional<List<T>> executeAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+    public static <T> Optional<List<T>> executeAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls, boolean ignoreCaseInName) {
         return getElements(executeAndGet(executionContextTool, id, params))
-                .map(e -> convertFromObjectArray(e, cls, true, false))
+                .map(e -> convertFromObjectArray(e, cls, true, ignoreCaseInName))
                 .filter(l -> !l.isEmpty());
     }
 
@@ -1449,14 +1449,14 @@ public class ModuleUtils {
         return getElements(executeParallelAndGet(executionContextTool, id, params));
     }
 
-    public static <T> Optional<T> executeParallelAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+    public static <T> Optional<T> executeParallelAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls, boolean ignoreCaseInName) {
         return getElement(executeParallelAndGet(executionContextTool, id, params))
-                .map(e -> convertFromObjectElement(e, cls, true, false, null));
+                .map(e -> convertFromObjectElement(e, cls, true, ignoreCaseInName, null));
     }
 
-    public static <T> Optional<List<T>> executeParallelAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls) {
+    public static <T> Optional<List<T>> executeParallelAndGetObjects(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls, boolean ignoreCaseInName) {
         return getElements(executeParallelAndGet(executionContextTool, id, params))
-                .map(e -> convertFromObjectArray(e, cls, true, false))
+                .map(e -> convertFromObjectArray(e, cls, true, ignoreCaseInName))
                 .filter(l -> !l.isEmpty());
     }
 
