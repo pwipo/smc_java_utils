@@ -74,7 +74,7 @@ public class ModuleUtils {
 
     public static String toString(IValue m) {
         if (m == null)
-            return null;
+            return "";
         String result;
         switch (m.getType()) {
             case STRING:
@@ -114,7 +114,7 @@ public class ModuleUtils {
 
     public static Number toNumber(IValue m) {
         if (m == null)
-            return null;
+            return 0;
         Number result;
         switch (m.getType()) {
             case STRING: {
@@ -904,8 +904,8 @@ public class ModuleUtils {
     }
 
     public static String toString(ObjectField m) {
-        if (m == null)
-            return null;
+        if (m == null || m.getValue() == null)
+            return "";
         String result;
         switch (m.getType()) {
             case STRING:
@@ -922,7 +922,7 @@ public class ModuleUtils {
     }
 
     public static Boolean toBoolean(ObjectField m) {
-        if (m == null)
+        if (m == null || m.getValue() == null)
             return false;
         Boolean result;
         switch (m.getType()) {
@@ -944,8 +944,8 @@ public class ModuleUtils {
     }
 
     public static Number toNumber(ObjectField m) {
-        if (m == null)
-            return null;
+        if (m == null || m.getValue() == null)
+            return 0;
         Number result;
         switch (m.getType()) {
             case STRING: {
@@ -983,7 +983,7 @@ public class ModuleUtils {
 
     public static Number toNumber(Number number, Class<? extends Number> cls) {
         if (number == null || cls == null)
-            return number;
+            return 0;
         if (Byte.class.equals(cls)) {
             return number.byteValue();
         } else if (Short.class.equals(cls)) {
@@ -1005,7 +1005,7 @@ public class ModuleUtils {
     }
 
     public static ObjectElement getObjectElement(ObjectField m) {
-        if (m == null)
+        if (m == null || m.getValue() == null)
             return null;
         if (m.getType() == ObjectType.OBJECT_ARRAY) {
             ObjectArray objectArray = (ObjectArray) m.getValue();
@@ -1018,7 +1018,7 @@ public class ModuleUtils {
     }
 
     public static List<ObjectElement> getObjectElements(ObjectField m) {
-        if (m == null)
+        if (m == null || m.getValue() == null)
             return null;
         if (m.getType() == ObjectType.OBJECT_ARRAY) {
             ObjectArray objectArray = (ObjectArray) m.getValue();
@@ -1035,7 +1035,7 @@ public class ModuleUtils {
     }
 
     public static ObjectArray toObjectArray(ObjectField m) {
-        if (m == null)
+        if (m == null || m.getValue() == null)
             return new ObjectArray();
         ObjectArray objectArray = null;
         switch (m.getType()) {
@@ -1064,7 +1064,7 @@ public class ModuleUtils {
     }
 
     public static ObjectElement toObjectElement(ObjectField m) {
-        if (m == null)
+        if (m == null || m.getValue() == null)
             return new ObjectElement();
         ObjectElement objectElement = null;
         switch (m.getType()) {
