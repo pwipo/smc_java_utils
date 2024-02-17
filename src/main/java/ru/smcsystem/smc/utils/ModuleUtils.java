@@ -1565,8 +1565,8 @@ public class ModuleUtils {
         try {
             if (objectArray.isSimple()) {
                 result = toList(objectArray).stream()
-                        .filter(o -> resultClass.isAssignableFrom(o.getClass()))
-                        .map(o -> (T) o)
+                        .filter(o -> resultClass.isAssignableFrom(o.getClass()) || resultClass.isInstance(String.class))
+                        .map(o -> resultClass.isInstance(String.class) ? (T) o.toString() : (T) o)
                         .collect(Collectors.toList());
             } else if (isArrayContainArrays(objectArray) && List.class.isAssignableFrom(resultClass)) {
                 result = new ArrayList<>(objectArray.size());
@@ -1655,7 +1655,7 @@ public class ModuleUtils {
                             } else if (List.class.isAssignableFrom(propertyType)) {
                                 ParameterizedType pType = (ParameterizedType) p.getReadMethod().getGenericReturnType();
                                 Class<?> pClass = (Class<?>) pType.getActualTypeArguments()[0];
-                                value = convertFromObjectArray(getObjectArray(f), pClass, silent, ignoreCaseInName);
+                                value = convertFromObjectArray(toObjectArray(f), pClass, silent, ignoreCaseInName);
                             } else if (Number.class.isAssignableFrom(propertyType)) {
                                 value = toNumber(toNumber(f), (Class<? extends Number>) propertyType);
                             } else if (!Object.class.equals(propertyType)) {
