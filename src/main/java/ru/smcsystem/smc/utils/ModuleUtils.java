@@ -96,7 +96,7 @@ public class ModuleUtils {
         Boolean result;
         switch (m.getType()) {
             case STRING:
-                result = Boolean.parseBoolean((String) m.getValue());
+                result = Boolean.parseBoolean(((String) m.getValue()).trim());
                 break;
             case BOOLEAN:
                 result = (Boolean) m.getValue();
@@ -118,7 +118,7 @@ public class ModuleUtils {
         Number result;
         switch (m.getType()) {
             case STRING: {
-                String value = (String) m.getValue();
+                String value = ((String) m.getValue()).trim();
                 if (!value.isBlank()) {
                     try {
                         if (value.contains(".")) {
@@ -927,7 +927,7 @@ public class ModuleUtils {
         Boolean result;
         switch (m.getType()) {
             case STRING:
-                result = Boolean.parseBoolean((String) m.getValue());
+                result = Boolean.parseBoolean(((String) m.getValue()).trim());
                 break;
             case BOOLEAN:
                 result = (Boolean) m.getValue();
@@ -949,7 +949,7 @@ public class ModuleUtils {
         Number result;
         switch (m.getType()) {
             case STRING: {
-                String value = (String) m.getValue();
+                String value = ((String) m.getValue()).trim();
                 if (!value.isBlank()) {
                     try {
                         if (value.contains(".")) {
