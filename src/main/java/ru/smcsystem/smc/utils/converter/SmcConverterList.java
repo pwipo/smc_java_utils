@@ -10,24 +10,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SmcConverterListStr extends SmcConverter<List<String>> {
+public class SmcConverterList extends SmcConverter<List<Object>> {
 
     @Override
-    public List<String> to(ObjectField field, ObjectElement objectElement) throws Exception {
+    public List<Object> to(ObjectField field, ObjectElement objectElement) throws Exception {
         if (field.isSimple()) {
-            return new ArrayList<>(List.of(field.getValue().toString()));
+            return new ArrayList<>(List.of(field.getValue()));
         } else if (ModuleUtils.isObjectElement(field)) {
             return ModuleUtils.getObjectElement(field).getFields().stream()
                     .filter(ObjectField::isSimple)
                     .map(ObjectField::getValue)
-                    .map(Object::toString).
-                    collect(Collectors.toList());
+                    // .map(Object::toString)
+                    .collect(Collectors.toList());
         } else if (ModuleUtils.isObjectArray(field)) {
             ObjectArray objectArray = ModuleUtils.getObjectArray(field);
             if (objectArray != null && objectArray.isSimple()) {
-                List<String> result = new ArrayList<>(objectArray.size());
+                List<Object> result = new ArrayList<>(objectArray.size());
                 for (int i = 0; i < objectArray.size(); i++)
-                    result.add(objectArray.get(i).toString());
+                    result.add(objectArray.get(i));
                 return result;
             }
         }
@@ -35,8 +35,8 @@ public class SmcConverterListStr extends SmcConverter<List<String>> {
     }
 
     @Override
-    public ObjectField from(String name, List<String> v, ObjectElement objectElement) throws Exception {
-        return new ObjectField(name, new ObjectArray((List) v, ObjectType.STRING));
+    public ObjectField from(String name, List<Object> v, ObjectElement objectElement) throws Exception {
+        return v.isEmpty() ? new ObjectField(name) : new ObjectField(name, new ObjectArray((List) v, ObjectType.VALUE_ANY));
     }
 
 }

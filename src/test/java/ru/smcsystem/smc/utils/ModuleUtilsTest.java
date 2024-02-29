@@ -36,7 +36,11 @@ public class ModuleUtilsTest {
                                         new ObjectElement(new ObjectField("key1", "one"), new ObjectField("value1", "1")),
                                         new ObjectElement(new ObjectField("key1", "two"), new ObjectField("value1", "2")),
                                         new ObjectElement(new ObjectField("key2", "three"), new ObjectField("value2", "3"))
-                                ))
+                                )),
+                                new ObjectField("map2", new ObjectElement(
+                                        new ObjectField("one", 1),
+                                        new ObjectField("two", 2),
+                                        new ObjectField("three", 3)))
                         ),
                         new ObjectElement(
                                 new ObjectField("name", "obj2")
@@ -54,6 +58,7 @@ public class ModuleUtilsTest {
         assertEquals(testObject.getInstant(), now);
         assertEquals(testObject.getObjType(), ObjType.TWO);
         assertEquals(testObject.getMap().size(), 2);
+        assertEquals(testObject.getMap2().size(), 3);
     }
 
     @Test
@@ -71,10 +76,11 @@ public class ModuleUtilsTest {
         testObject.setInstant(now);
         testObject.setObjType(ObjType.THREE);
         testObject.setMap(Map.of("one", "1", "two", "2"));
+        testObject.setMap2(Map.of("one", 1, "two", 2, "three", 3));
         ObjectArray objectArray = ModuleUtils.convertToObjectArray(List.of(testObject), TestObject.class, false);
         assertEquals(objectArray.size(), 1);
         ObjectElement objectElement = (ObjectElement) objectArray.get(0);
-        assertEquals(objectElement.getFields().size(), 10);
+        assertEquals(objectElement.getFields().size(), 11);
         System.out.println(objectElement);
         assertEquals(objectElement.getFields().get(0).getValue(), "obj1");
         assertEquals(objectElement.getFields().get(3).getValue(), (Long) 1L);
@@ -84,7 +90,8 @@ public class ModuleUtilsTest {
         assertEquals(objectElement.getFields().get(5).getValue(), date.getTime());
         assertEquals(objectElement.getFields().get(6).getValue(), now.toEpochMilli());
         assertEquals(((ObjectArray) objectElement.getFields().get(7).getValue()).size(), 2);
-        assertEquals(objectElement.getFields().get(8).getValue(), ObjType.THREE.name());
-        assertEquals(objectElement.getFields().get(9).getValue(), BigInteger.valueOf(5));
+        assertEquals(((ObjectElement) objectElement.getFields().get(8).getValue()).getFields().size(), 3);
+        assertEquals(objectElement.getFields().get(9).getValue(), ObjType.THREE.name());
+        assertEquals(objectElement.getFields().get(10).getValue(), BigInteger.valueOf(5));
     }
 }

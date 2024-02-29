@@ -27,9 +27,12 @@ public class TestObject {
     @SmcField(converter = SmcConverterEnumName.class)
     private ObjType objType;
 
-    @SmcField(converter = SmcConverterMapStr.class)
+    @SmcField(converter = SmcConverterMap.class)
     @SmcFieldMap(key = "key1", value = "value1")
-    private Map<String, String> map;
+    private Map<String, Object> map;
+
+    @SmcField(converter = SmcConverterMap.class)
+    private Map<String, Object> map2;
 
     public String getName() {
         return name;
@@ -103,11 +106,19 @@ public class TestObject {
         this.objType = objType;
     }
 
-    public Map<String, String> getMap() {
+    public Map<String, Object> getMap() {
         return map;
     }
 
-    public void setMap(Map<String, String> map) {
+    public void setMap(Map<String, Object> map) {
         this.map = map;
+    }
+
+    public Map<String, Object> getMap2() {
+        return map2;
+    }
+
+    public void setMap2(Map<String, Object> map2) {
+        this.map2 = map2;
     }
 }
