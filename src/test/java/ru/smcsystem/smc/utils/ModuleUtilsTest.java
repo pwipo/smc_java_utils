@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,7 +31,12 @@ public class ModuleUtilsTest {
                                 new ObjectField("value5", 5),
                                 new ObjectField("date", date.getTime()),
                                 new ObjectField("instant", now.toEpochMilli()),
-                                new ObjectField("objType", "TWO")
+                                new ObjectField("objType", "TWO"),
+                                new ObjectField("map", new ObjectArray(
+                                        new ObjectElement(new ObjectField("key1", "one"), new ObjectField("value1", "1")),
+                                        new ObjectElement(new ObjectField("key1", "two"), new ObjectField("value1", "2")),
+                                        new ObjectElement(new ObjectField("key2", "three"), new ObjectField("value2", "3"))
+                                ))
                         ),
                         new ObjectElement(
                                 new ObjectField("name", "obj2")
@@ -47,6 +53,7 @@ public class ModuleUtilsTest {
         assertEquals(testObject.getDate(), date);
         assertEquals(testObject.getInstant(), now);
         assertEquals(testObject.getObjType(), ObjType.TWO);
+        assertEquals(testObject.getMap().size(), 2);
     }
 
     @Test
@@ -63,10 +70,11 @@ public class ModuleUtilsTest {
         testObject.setDate(date);
         testObject.setInstant(now);
         testObject.setObjType(ObjType.THREE);
-        ObjectArray objectArray = ModuleUtils.convertToObjectArray(List.of(testObject), TestObject.class, true);
+        testObject.setMap(Map.of("one", "1", "two", "2"));
+        ObjectArray objectArray = ModuleUtils.convertToObjectArray(List.of(testObject), TestObject.class, false);
         assertEquals(objectArray.size(), 1);
         ObjectElement objectElement = (ObjectElement) objectArray.get(0);
-        assertEquals(objectElement.getFields().size(), 9);
+        assertEquals(objectElement.getFields().size(), 10);
         System.out.println(objectElement);
         assertEquals(objectElement.getFields().get(0).getValue(), "obj1");
         assertEquals(objectElement.getFields().get(3).getValue(), (Long) 1L);
@@ -75,7 +83,8 @@ public class ModuleUtilsTest {
         assertEquals(objectElement.getFields().get(2).getValue(), BigDecimal.valueOf(4.));
         assertEquals(objectElement.getFields().get(5).getValue(), date.getTime());
         assertEquals(objectElement.getFields().get(6).getValue(), now.toEpochMilli());
-        assertEquals(objectElement.getFields().get(8).getValue(), BigInteger.valueOf(5));
-        assertEquals(objectElement.getFields().get(7).getValue(), ObjType.THREE.name());
+        assertEquals(((ObjectArray) objectElement.getFields().get(7).getValue()).size(), 2);
+        assertEquals(objectElement.getFields().get(8).getValue(), ObjType.THREE.name());
+        assertEquals(objectElement.getFields().get(9).getValue(), BigInteger.valueOf(5));
     }
 }

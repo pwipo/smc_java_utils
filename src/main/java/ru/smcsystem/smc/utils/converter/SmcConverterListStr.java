@@ -17,9 +17,11 @@ public class SmcConverterListStr extends SmcConverter<List<String>> {
         if (field.isSimple()) {
             return new ArrayList<>(List.of(field.getValue().toString()));
         } else if (ModuleUtils.isObjectElement(field)) {
-            ObjectElement objectElementValue = ModuleUtils.getObjectElement(field);
-            if (objectElementValue.isSimple())
-                return objectElementValue.getFields().stream().map(ObjectField::getValue).map(Object::toString).collect(Collectors.toList());
+            return ModuleUtils.getObjectElement(field).getFields().stream()
+                    .filter(ObjectField::isSimple)
+                    .map(ObjectField::getValue)
+                    .map(Object::toString).
+                    collect(Collectors.toList());
         } else if (ModuleUtils.isObjectArray(field)) {
             ObjectArray objectArray = ModuleUtils.getObjectArray(field);
             if (objectArray != null && objectArray.isSimple()) {
@@ -36,4 +38,5 @@ public class SmcConverterListStr extends SmcConverter<List<String>> {
     public ObjectField from(String name, List<String> v, ObjectElement objectElement) throws Exception {
         return new ObjectField(name, new ObjectArray((List) v, ObjectType.STRING));
     }
+
 }

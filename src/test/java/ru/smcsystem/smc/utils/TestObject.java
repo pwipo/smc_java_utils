@@ -1,13 +1,12 @@
 package ru.smcsystem.smc.utils;
 
-import ru.smcsystem.smc.utils.converter.SmcConverterDate;
-import ru.smcsystem.smc.utils.converter.SmcConverterEnumName;
-import ru.smcsystem.smc.utils.converter.SmcConverterInstant;
+import ru.smcsystem.smc.utils.converter.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 
 public class TestObject {
     @SmcField(order = 1, required = true)
@@ -27,6 +26,10 @@ public class TestObject {
     private Instant instant;
     @SmcField(converter = SmcConverterEnumName.class)
     private ObjType objType;
+
+    @SmcField(converter = SmcConverterMapStr.class)
+    @SmcFieldMap(key = "key1", value = "value1")
+    private Map<String, String> map;
 
     public String getName() {
         return name;
@@ -98,5 +101,13 @@ public class TestObject {
 
     public void setObjType(ObjType objType) {
         this.objType = objType;
+    }
+
+    public Map<String, String> getMap() {
+        return map;
+    }
+
+    public void setMap(Map<String, String> map) {
+        this.map = map;
     }
 }

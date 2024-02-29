@@ -20,10 +20,19 @@ public class ObjectElementDescriptor<T> {
         SmcConverter<?> smcConverterTmp = null;
         if (smcField != null && smcField.converter() != SmcConverter.None.class) {
             Constructor<?> constructor = smcField.converter().getConstructors()[0];
-            if (constructor.getParameterCount() == 1) {
-                smcConverterTmp = (SmcConverter<?>) constructor.newInstance(propertyDescriptor.getPropertyType());
-            } else if (constructor.getParameterCount() == 0) {
-                smcConverterTmp = (SmcConverter<?>) constructor.newInstance();
+            switch (constructor.getParameterCount()) {
+                case 0:
+                    smcConverterTmp = (SmcConverter<?>) constructor.newInstance();
+                    break;
+                case 1:
+                    smcConverterTmp = (SmcConverter<?>) constructor.newInstance(propertyDescriptor.getPropertyType());
+                    break;
+                case 2:
+                    smcConverterTmp = (SmcConverter<?>) constructor.newInstance(propertyDescriptor.getPropertyType(), propertyDescriptor.getName());
+                    break;
+                case 3:
+                    smcConverterTmp = (SmcConverter<?>) constructor.newInstance(propertyDescriptor.getPropertyType(), propertyDescriptor.getName(), cls);
+                    break;
             }
         }
         this.smcConverter = smcConverterTmp;
