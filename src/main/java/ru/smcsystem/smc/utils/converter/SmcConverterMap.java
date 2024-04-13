@@ -33,6 +33,8 @@ public class SmcConverterMap extends SmcConverter<Map<String, Object>> {
     @Override
     public Map<String, Object> to(ObjectField field, ObjectElement objectElement) throws Exception {
         if (field.isSimple()) {
+            if (field.getValue() == null || (ModuleUtils.isString(field) && ModuleUtils.getString(field).isEmpty()))
+                return null;
             return new HashMap<>(Map.of(field.getName(), field.getValue()));
         } else if (ModuleUtils.isObjectElement(field)) {
             return ModuleUtils.toObjectElement(field).getFields().stream()
