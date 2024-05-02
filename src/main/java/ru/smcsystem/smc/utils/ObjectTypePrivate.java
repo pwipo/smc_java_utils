@@ -42,29 +42,40 @@ public enum ObjectTypePrivate {
             case VALUE_ANY:
                 return ObjectType.VALUE_ANY;
             case STRING:
+            case STRING_NULL:
                 return ObjectType.STRING;
             case BYTE:
+            case BYTE_NULL:
                 return ObjectType.BYTE;
             case SHORT:
+            case SHORT_NULL:
                 return ObjectType.SHORT;
             case INTEGER:
+            case INTEGER_NULL:
                 return ObjectType.INTEGER;
             case LONG:
+            case LONG_NULL:
                 return ObjectType.LONG;
             case FLOAT:
+            case FLOAT_NULL:
                 return ObjectType.FLOAT;
             case DOUBLE:
+            case DOUBLE_NULL:
                 return ObjectType.DOUBLE;
             case BIG_INTEGER:
+            case BIG_INTEGER_NULL:
                 return ObjectType.BIG_INTEGER;
             case BIG_DECIMAL:
+            case BIG_DECIMAL_NULL:
                 return ObjectType.BIG_DECIMAL;
             case BYTES:
+            case BYTES_NULL:
                 return ObjectType.BYTES;
             case OBJECT_ELEMENT_OPTIMIZED:
             case OBJECT_ELEMENT_SIMPLE_OPTIMIZED:
                 return ObjectType.OBJECT_ELEMENT;
             case BOOLEAN:
+            case BOOLEAN_NULL:
                 return ObjectType.BOOLEAN;
         }
         throw new IllegalArgumentException(this.name());

@@ -24,52 +24,162 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ModuleUtils {
+    public static boolean isNumber(IMessage m) {
+        return isNumber((IValue) m);
+    }
+
+    public static boolean isNumber(IValue m) {
+        return m != null && ((ValueType.BYTE.equals(m.getType()) || ValueType.SHORT.equals(m.getType()) || ValueType.INTEGER.equals(m.getType()) || ValueType.LONG.equals(m.getType()) || ValueType.FLOAT.equals(m.getType()) || ValueType.DOUBLE.equals(m.getType()) || ValueType.BIG_INTEGER.equals(m.getType()) || ValueType.BIG_DECIMAL.equals(m.getType())));
+    }
+
+    public static boolean isNumber(ObjectField m) {
+        return m != null && ((ObjectType.BYTE.equals(m.getType()) || ObjectType.SHORT.equals(m.getType()) || ObjectType.INTEGER.equals(m.getType()) || ObjectType.LONG.equals(m.getType()) || ObjectType.FLOAT.equals(m.getType()) || ObjectType.DOUBLE.equals(m.getType()) || ObjectType.BIG_INTEGER.equals(m.getType()) || ObjectType.BIG_DECIMAL.equals(m.getType())));
+    }
+
+    public static boolean isString(IMessage m) {
+        return isString((IValue) m);
+    }
+
+    public static boolean isString(IValue m) {
+        return m != null && ValueType.STRING.equals(m.getType());
+    }
+
+    public static boolean isString(ObjectField m) {
+        return m != null && ObjectType.STRING.equals(m.getType());
+    }
+
+    public static boolean isBytes(IMessage m) {
+        return isBytes((IValue) m);
+    }
+
+    public static boolean isBytes(IValue m) {
+        return m != null && ValueType.BYTES.equals(m.getType());
+    }
+
+    public static boolean isBytes(ObjectField m) {
+        return m != null && ObjectType.BYTES.equals(m.getType());
+    }
+
+    public static boolean isBoolean(IMessage m) {
+        return isBoolean((IValue) m);
+    }
+
+    public static boolean isBoolean(IValue m) {
+        return m != null && ValueType.BOOLEAN.equals(m.getType());
+    }
+
+    public static boolean isBoolean(ObjectField m) {
+        return m != null && ObjectType.BOOLEAN.equals(m.getType());
+    }
+
+    public static boolean isObjectArray(IMessage m) {
+        return isObjectArray((IValue) m);
+    }
+
+    public static boolean isObjectArray(IValue m) {
+        return m != null && ValueType.OBJECT_ARRAY.equals(m.getType());
+    }
+
+    public static boolean isObjectArray(ObjectField m) {
+        return m != null && ObjectType.OBJECT_ARRAY.equals(m.getType());
+    }
+
+    public static boolean isObjectElement(ObjectField m) {
+        return m != null && ObjectType.OBJECT_ELEMENT.equals(m.getType());
+    }
+
     public static Number getNumber(IMessage m) {
         return getNumber((IValue) m);
-    }
-
-    public static String getString(IMessage m) {
-        return getString((IValue) m);
-    }
-
-    public static byte[] getBytes(IMessage m) {
-        return getBytes((IValue) m);
-    }
-
-    public static Boolean getBoolean(IMessage m) {
-        return getBoolean((IValue) m);
-    }
-
-    public static String toString(IMessage m) {
-        return toString((IValue) m);
-    }
-
-    public static Boolean toBoolean(IMessage m) {
-        return toBoolean((IValue) m);
-    }
-
-    public static Number toNumber(IMessage m) {
-        return toNumber((IValue) m);
-    }
-
-    public static ObjectArray getObjectArray(IMessage m) {
-        return getObjectArray((IValue) m);
     }
 
     public static Number getNumber(IValue m) {
         return isNumber(m) ? (Number) m.getValue() : null;
     }
 
+    public static Number getNumber(ObjectField m) {
+        return isNumber(m) ? (Number) m.getValue() : null;
+    }
+
+    public static String getString(IMessage m) {
+        return getString((IValue) m);
+    }
+
     public static String getString(IValue m) {
         return isString(m) ? (String) m.getValue() : null;
+    }
+
+    public static String getString(ObjectField m) {
+        return isString(m) ? (String) m.getValue() : null;
+    }
+
+    public static byte[] getBytes(IMessage m) {
+        return getBytes((IValue) m);
     }
 
     public static byte[] getBytes(IValue m) {
         return isBytes(m) ? (byte[]) m.getValue() : null;
     }
 
+    public static byte[] getBytes(ObjectField m) {
+        return isBytes(m) ? (byte[]) m.getValue() : null;
+    }
+
+    public static Boolean getBoolean(IMessage m) {
+        return getBoolean((IValue) m);
+    }
+
     public static Boolean getBoolean(IValue m) {
         return isBoolean(m) ? (Boolean) m.getValue() : null;
+    }
+
+    public static Boolean getBoolean(ObjectField m) {
+        return isBoolean(m) ? (Boolean) m.getValue() : null;
+    }
+
+    public static ObjectArray getObjectArray(IMessage m) {
+        return getObjectArray((IValue) m);
+    }
+
+    public static ObjectArray getObjectArray(IValue m) {
+        return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
+    }
+
+    public static ObjectArray getObjectArray(ObjectField m) {
+        return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
+    }
+
+    public static ObjectElement getObjectElement(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return null;
+        if (m.getType() == ObjectType.OBJECT_ARRAY) {
+            ObjectArray objectArray = (ObjectArray) m.getValue();
+            if (objectArray.size() > 0 && objectArray.getType() == ObjectType.OBJECT_ELEMENT)
+                return (ObjectElement) objectArray.get(0);
+        } else if (m.getType() == ObjectType.OBJECT_ELEMENT) {
+            return (ObjectElement) m.getValue();
+        }
+        return null;
+    }
+
+    public static List<ObjectElement> getObjectElements(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return null;
+        if (m.getType() == ObjectType.OBJECT_ARRAY) {
+            ObjectArray objectArray = (ObjectArray) m.getValue();
+            if (objectArray.getType() == ObjectType.OBJECT_ELEMENT) {
+                List<ObjectElement> result = new ArrayList<>(objectArray.size() + 1);
+                for (int i = 0; i < objectArray.size(); i++)
+                    result.add((ObjectElement) objectArray.get(i));
+                return result;
+            }
+        } else if (m.getType() == ObjectType.OBJECT_ELEMENT) {
+            return new ArrayList<>(List.of((ObjectElement) m.getValue()));
+        }
+        return null;
+    }
+
+    public static String toString(IMessage m) {
+        return toString((IValue) m);
     }
 
     public static String toString(IValue m) {
@@ -90,26 +200,26 @@ public class ModuleUtils {
         return result;
     }
 
-    public static Boolean toBoolean(IValue m) {
-        if (m == null)
-            return false;
-        Boolean result;
+    public static String toString(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return "";
+        String result;
         switch (m.getType()) {
             case STRING:
-                result = Boolean.parseBoolean(((String) m.getValue()).trim());
-                break;
-            case BOOLEAN:
-                result = (Boolean) m.getValue();
+                result = (String) m.getValue();
                 break;
             case BYTES:
-            case OBJECT_ARRAY:
-                result = true;
+                result = Base64.getEncoder().encodeToString((byte[]) m.getValue());
                 break;
             default:
-                result = ((Number) m.getValue()).intValue() > 0;
+                result = m.getValue().toString();
                 break;
         }
         return result;
+    }
+
+    public static Number toNumber(IMessage m) {
+        return toNumber((IValue) m);
     }
 
     public static Number toNumber(IValue m) {
@@ -150,8 +260,116 @@ public class ModuleUtils {
         return result;
     }
 
-    public static ObjectArray getObjectArray(IValue m) {
-        return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
+    public static Number toNumber(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return 0;
+        Number result;
+        switch (m.getType()) {
+            case STRING: {
+                String value = ((String) m.getValue()).trim();
+                if (!value.isBlank()) {
+                    try {
+                        if (value.contains(".")) {
+                            result = Double.parseDouble(value);
+                        } else {
+                            result = Long.parseLong(value);
+                        }
+                    } catch (Exception e) {
+                        result = 0;
+                    }
+                } else {
+                    result = 0;
+                }
+                break;
+            }
+            case BOOLEAN:
+                result = (Boolean) m.getValue() ? 1 : 0;
+                break;
+            case BYTES:
+                result = ((byte[]) m.getValue()).length;
+                break;
+            case OBJECT_ARRAY:
+                result = ((ObjectArray) m.getValue()).size();
+                break;
+            case OBJECT_ELEMENT:
+                result = ((ObjectElement) m.getValue()).getFields().size();
+                break;
+            default:
+                result = (Number) m.getValue();
+                break;
+        }
+        return result;
+    }
+
+    public static Number toNumber(Number number, Class<? extends Number> cls) {
+        if (number == null || cls == null)
+            return 0;
+        if (Byte.class.equals(cls)) {
+            return number.byteValue();
+        } else if (Short.class.equals(cls)) {
+            return number.shortValue();
+        } else if (Integer.class.equals(cls)) {
+            return number.intValue();
+        } else if (Long.class.equals(cls)) {
+            return number.longValue();
+        } else if (Float.class.equals(cls)) {
+            return number.floatValue();
+        } else if (Double.class.equals(cls)) {
+            return number.doubleValue();
+        } else if (BigInteger.class.equals(cls)) {
+            return BigInteger.valueOf(number.longValue());
+        } else if (BigDecimal.class.equals(cls)) {
+            return BigDecimal.valueOf(number.doubleValue());
+        }
+        return number;
+    }
+
+    public static Boolean toBoolean(IMessage m) {
+        return toBoolean((IValue) m);
+    }
+
+    public static Boolean toBoolean(IValue m) {
+        if (m == null)
+            return false;
+        Boolean result;
+        switch (m.getType()) {
+            case STRING:
+                result = Boolean.parseBoolean(((String) m.getValue()).trim());
+                break;
+            case BOOLEAN:
+                result = (Boolean) m.getValue();
+                break;
+            case BYTES:
+            case OBJECT_ARRAY:
+                result = true;
+                break;
+            default:
+                result = ((Number) m.getValue()).intValue() > 0;
+                break;
+        }
+        return result;
+    }
+
+    public static Boolean toBoolean(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return false;
+        Boolean result;
+        switch (m.getType()) {
+            case STRING:
+                result = Boolean.parseBoolean(((String) m.getValue()).trim());
+                break;
+            case BOOLEAN:
+                result = (Boolean) m.getValue();
+                break;
+            case BYTES:
+            case OBJECT_ARRAY:
+                result = true;
+                break;
+            default:
+                result = ((Number) m.getValue()).intValue() > 0;
+                break;
+        }
+        return result;
     }
 
     public static ObjectArray toObjectArray(IValue m) {
@@ -174,6 +392,35 @@ public class ModuleUtils {
                 break;
             case OBJECT_ARRAY:
                 objectArray = (ObjectArray) m.getValue();
+                break;
+        }
+        return objectArray != null ? objectArray : new ObjectArray();
+    }
+
+    public static ObjectArray toObjectArray(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return new ObjectArray();
+        ObjectArray objectArray = null;
+        switch (m.getType()) {
+            case VALUE_ANY:
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN:
+                objectArray = new ObjectArray(List.of(m.getValue()), m.getType());
+                break;
+            case OBJECT_ARRAY:
+                objectArray = (ObjectArray) m.getValue();
+                break;
+            case OBJECT_ELEMENT:
+                objectArray = new ObjectArray((ObjectElement) m.getValue());
                 break;
         }
         return objectArray != null ? objectArray : new ObjectArray();
@@ -211,6 +458,46 @@ public class ModuleUtils {
                 }
                 break;
             }
+        }
+        return objectElement != null ? objectElement : new ObjectElement();
+    }
+
+    public static ObjectElement toObjectElement(ObjectField m) {
+        if (m == null || m.getValue() == null)
+            return new ObjectElement();
+        ObjectElement objectElement = null;
+        switch (m.getType()) {
+            case VALUE_ANY:
+            case STRING:
+            case BYTE:
+            case SHORT:
+            case INTEGER:
+            case LONG:
+            case BIG_INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case BIG_DECIMAL:
+            case BYTES:
+            case BOOLEAN: {
+                ObjectField objectField = new ObjectField(m.getName());
+                objectField.setValue(m.getType(), m.getValue());
+                objectElement = new ObjectElement(List.of(objectField));
+                break;
+            }
+            case OBJECT_ARRAY: {
+                ObjectArray objectArray = (ObjectArray) m.getValue();
+                if (isArrayContainObjectElements(objectArray)) {
+                    objectElement = (ObjectElement) objectArray.get(0);
+                } else if (objectArray.isSimple() && objectArray.size() > 0) {
+                    objectElement = new ObjectElement();
+                    for (int i = 0; i < objectArray.size(); i++)
+                        objectElement.getFields().add(new ObjectField(String.valueOf(i), objectArray.getType(), objectArray.get(i)));
+                }
+                break;
+            }
+            case OBJECT_ELEMENT:
+                objectElement = (ObjectElement) m.getValue();
+                break;
         }
         return objectElement != null ? objectElement : new ObjectElement();
     }
@@ -268,6 +555,10 @@ public class ModuleUtils {
      * @return ObjectArray
      */
     public static ObjectArray deserializeToObject(LinkedList<IMessage> messages) {
+        return deserializeToObject(messages, true);
+    }
+
+    public static ObjectArray deserializeToObject(LinkedList<IMessage> messages, boolean silent) {
         IMessage m = messages.peek();
         if (isObjectArray(m))
             return getObjectArray(messages.poll());
@@ -300,14 +591,14 @@ public class ModuleUtils {
                     break;
                 case OBJECT_ELEMENT:
                     for (int i = 0; i < count; i++)
-                        objectArray.add(deserializeToObjectElement(messages, -1, null));
+                        objectArray.add(deserializeToObjectElement(messages, -1, null, silent));
                     break;
                 case OBJECT_ELEMENT_SIMPLE: {
                     Number countFields = getNumber(messages.peek());
                     if (countFields != null) {
                         messages.poll();
                         for (int i = 0; i < count; i++)
-                            objectArray.add(deserializeToObjectElement(messages, countFields.intValue(), null));
+                            objectArray.add(deserializeToObjectElement(messages, countFields.intValue(), null, silent));
                     }
                     break;
                 }
@@ -354,7 +645,7 @@ public class ModuleUtils {
                     if (hasErrors)
                         break;
                     for (int i = 0; i < count; i++)
-                        objectArray.add(deserializeToObjectElement(messages, -1, definedFields));
+                        objectArray.add(deserializeToObjectElement(messages, -1, definedFields, silent));
                     break;
                 }
                 case OBJECT_ELEMENT_SIMPLE_OPTIMIZED: {
@@ -369,25 +660,26 @@ public class ModuleUtils {
                     for (int i = 0; i < countFieldsI; i++)
                         definedFields.add(Map.entry(toString(messages.poll()), ObjectTypePrivate.VALUE_ANY));
                     for (int i = 0; i < count; i++)
-                        objectArray.add(deserializeToObjectElement(messages, -1, definedFields));
+                        objectArray.add(deserializeToObjectElement(messages, -1, definedFields, silent));
                     break;
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!silent)
+                throw new RuntimeException(e);
         }
         return objectArray;
     }
 
-    private static ObjectElement deserializeToObjectElement(LinkedList<IMessage> messages, int countFields, List<Map.Entry<String, ObjectTypePrivate>> definedFields) {
+    private static ObjectElement deserializeToObjectElement(LinkedList<IMessage> messages, int countFields, List<Map.Entry<String, ObjectTypePrivate>> definedFields, boolean silent) {
         IMessage m = messages.peek();
+        ObjectElement objectElement = new ObjectElement();
         if (isObjectArray(m)) {
             ObjectArray objectArray = getObjectArray(messages.poll());
             if (isArrayContainObjectElements(objectArray))
                 return (ObjectElement) objectArray.get(0);
-            return new ObjectElement();
+            return objectElement;
         }
-        ObjectElement objectElement = new ObjectElement();
 
         int count = -1;
         if (countFields < 0) {
@@ -406,7 +698,7 @@ public class ModuleUtils {
 
         try {
             if (definedFields != null) {
-                definedFields.forEach(entry -> deserializeToObjectElementValue(messages, objectElement, entry.getKey(), entry.getValue()));
+                definedFields.forEach(entry -> deserializeToObjectElementValue(messages, objectElement, entry.getKey(), entry.getValue(), silent));
             } else {
                 for (int i = 0; i < count; i++) {
                     if ((countFields > -1 && messages.size() < 2) || (countFields < 0 && messages.size() < 3))
@@ -423,29 +715,30 @@ public class ModuleUtils {
                         messages.poll();
                         type = ObjectTypePrivate.values()[typeId.intValue()];
                     }
-                    deserializeToObjectElementValue(messages, objectElement, fieldName, type);
+                    deserializeToObjectElementValue(messages, objectElement, fieldName, type, silent);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!silent)
+                throw new RuntimeException(e);
         }
 
         return objectElement;
     }
 
-    private static void deserializeToObjectElementValue(LinkedList<IMessage> messages, ObjectElement objectElement, String fieldName, ObjectTypePrivate type) {
+    private static void deserializeToObjectElementValue(LinkedList<IMessage> messages, ObjectElement objectElement, String fieldName, ObjectTypePrivate type, boolean silent) {
         switch (type) {
             case OBJECT_ARRAY:
                 objectElement.getFields().add(new ObjectField(fieldName, deserializeToObject(messages)));
                 break;
             case OBJECT_ELEMENT:
-                objectElement.getFields().add(new ObjectField(fieldName, deserializeToObjectElement(messages, -1, null)));
+                objectElement.getFields().add(new ObjectField(fieldName, deserializeToObjectElement(messages, -1, null, silent)));
                 break;
             case OBJECT_ELEMENT_SIMPLE: {
                 Number countFields2 = getNumber(messages.peek());
                 if (countFields2 != null) {
                     messages.poll();
-                    objectElement.getFields().add(new ObjectField(fieldName, deserializeToObjectElement(messages, countFields2.intValue(), null)));
+                    objectElement.getFields().add(new ObjectField(fieldName, deserializeToObjectElement(messages, countFields2.intValue(), null, silent)));
                 }
                 break;
             }
@@ -555,6 +848,10 @@ public class ModuleUtils {
      * @return List of values, ready for send as messages
      */
     public static List<Object> serializeFromObject(ObjectArray mainList) {
+        return serializeFromObject(mainList, true);
+    }
+
+    public static List<Object> serializeFromObject(ObjectArray mainList, boolean silent) {
         List<Object> result = new LinkedList<>();
         if (mainList == null)
             return result;
@@ -564,126 +861,136 @@ public class ModuleUtils {
         if (mainList.size() == 0)
             return result;
         boolean hasFieldWithNull = false;
-        if (typePrivate == ObjectTypePrivate.OBJECT_ELEMENT && mainList.size() > 1) {
-            boolean isSimple = true;
-            List<String> fieldNames = null;
-            for (int i = 0; i < mainList.size(); i++) {
-                ObjectElement objectElement = (ObjectElement) mainList.get(i);
-                if (i == 0) {
-                    fieldNames = objectElement.getFields().stream().map(ObjectField::getName).collect(Collectors.toList());
-                    if (!objectElement.isSimple()) {
-                        isSimple = false;
-                        break;
-                    }
-                    if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
-                        isSimple = false;
-                        hasFieldWithNull = true;
-                        break;
-                    }
-                } else {
-                    if (!objectElement.isSimple() || !objectElement.getFields().stream().map(ObjectField::getName).collect(Collectors.toList()).equals(fieldNames)) {
-                        isSimple = false;
-                        break;
-                    }
-                    if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
-                        isSimple = false;
-                        hasFieldWithNull = true;
-                        break;
+        try {
+            if (typePrivate == ObjectTypePrivate.OBJECT_ELEMENT && mainList.size() > 1) {
+                boolean isSimple = true;
+                List<String> fieldNames = null;
+                for (int i = 0; i < mainList.size(); i++) {
+                    ObjectElement objectElement = (ObjectElement) mainList.get(i);
+                    if (i == 0) {
+                        fieldNames = objectElement.getFields().stream().map(ObjectField::getName).collect(Collectors.toList());
+                        if (!objectElement.isSimple()) {
+                            isSimple = false;
+                            break;
+                        }
+                        if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
+                            isSimple = false;
+                            hasFieldWithNull = true;
+                            break;
+                        }
+                    } else {
+                        if (!objectElement.isSimple() || !objectElement.getFields().stream().map(ObjectField::getName).collect(Collectors.toList()).equals(fieldNames)) {
+                            isSimple = false;
+                            break;
+                        }
+                        if (objectElement.getFields().stream().anyMatch(f -> f.getValue() == null)) {
+                            isSimple = false;
+                            hasFieldWithNull = true;
+                            break;
+                        }
                     }
                 }
+                if (isSimple)
+                    typePrivate = ObjectTypePrivate.OBJECT_ELEMENT_SIMPLE;
             }
-            if (isSimple)
-                typePrivate = ObjectTypePrivate.OBJECT_ELEMENT_SIMPLE;
-        }
-        switch (typePrivate) {
-            case OBJECT_ARRAY:
-                for (int i = 0; i < mainList.size(); i++)
-                    result.addAll(serializeFromObject((ObjectArray) mainList.get(i)));
-                break;
-            case OBJECT_ELEMENT: {
-                List<String> definedFields = null;
-                if (!hasFieldWithNull && mainList.size() > 1 && isSameFields(mainList)) {
-                    List<Map.Entry<String, ObjectType>> definedFieldsTmp = new ArrayList<>(mainList.size() + 1);
-                    ObjectElement objectElement = (ObjectElement) mainList.get(0);
-                    objectElement.getFields().forEach(f -> definedFieldsTmp.add(Map.entry(f.getName(), f.getType())));
-                    result.clear();
-                    result.add(ObjectTypePrivate.OBJECT_ELEMENT_OPTIMIZED.ordinal());
-                    result.add(mainList.size());
-                    result.add(definedFieldsTmp.size());
-                    definedFieldsTmp.forEach(f -> {
-                        result.add(f.getKey());
-                        result.add(toObjectTypePrivate(f.getValue(), false).ordinal());
-                    });
-                    definedFields = definedFieldsTmp.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+            switch (typePrivate) {
+                case OBJECT_ARRAY:
+                    for (int i = 0; i < mainList.size(); i++)
+                        result.addAll(serializeFromObject((ObjectArray) mainList.get(i), silent));
+                    break;
+                case OBJECT_ELEMENT: {
+                    List<String> definedFields = null;
+                    if (!hasFieldWithNull && mainList.size() > 1 && isSameFields(mainList)) {
+                        List<Map.Entry<String, ObjectType>> definedFieldsTmp = new ArrayList<>(mainList.size() + 1);
+                        ObjectElement objectElement = (ObjectElement) mainList.get(0);
+                        objectElement.getFields().forEach(f -> definedFieldsTmp.add(Map.entry(f.getName(), f.getType())));
+                        result.clear();
+                        result.add(ObjectTypePrivate.OBJECT_ELEMENT_OPTIMIZED.ordinal());
+                        result.add(mainList.size());
+                        result.add(definedFieldsTmp.size());
+                        definedFieldsTmp.forEach(f -> {
+                            result.add(f.getKey());
+                            result.add(toObjectTypePrivate(f.getValue(), false).ordinal());
+                        });
+                        definedFields = definedFieldsTmp.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+                    }
+                    for (int i = 0; i < mainList.size(); i++)
+                        result.addAll(serializeFromObject((ObjectElement) mainList.get(i), false, definedFields, silent));
+                    break;
                 }
-                for (int i = 0; i < mainList.size(); i++)
-                    result.addAll(serializeFromObject((ObjectElement) mainList.get(i), false, definedFields));
-                break;
-            }
-            case OBJECT_ELEMENT_SIMPLE:
-                List<String> definedFields = null;
-                if (mainList.size() > 1 && isSameFields(mainList)) {
-                    List<String> definedFieldsTmp = new ArrayList<>(mainList.size() + 1);
-                    ObjectElement objectElement = (ObjectElement) mainList.get(0);
-                    objectElement.getFields().forEach(f -> definedFieldsTmp.add(f.getName()));
-                    result.clear();
-                    result.add(ObjectTypePrivate.OBJECT_ELEMENT_SIMPLE_OPTIMIZED.ordinal());
-                    result.add(mainList.size());
-                    result.add(definedFieldsTmp.size());
-                    result.addAll(definedFieldsTmp);
-                    definedFields = definedFieldsTmp;
-                } else {
-                    result.add(mainList.size() > 0 ? ((ObjectElement) mainList.get(0)).getFields().size() : 0);
+                case OBJECT_ELEMENT_SIMPLE:
+                    List<String> definedFields = null;
+                    if (mainList.size() > 1 && isSameFields(mainList)) {
+                        List<String> definedFieldsTmp = new ArrayList<>(mainList.size() + 1);
+                        ObjectElement objectElement = (ObjectElement) mainList.get(0);
+                        objectElement.getFields().forEach(f -> definedFieldsTmp.add(f.getName()));
+                        result.clear();
+                        result.add(ObjectTypePrivate.OBJECT_ELEMENT_SIMPLE_OPTIMIZED.ordinal());
+                        result.add(mainList.size());
+                        result.add(definedFieldsTmp.size());
+                        result.addAll(definedFieldsTmp);
+                        definedFields = definedFieldsTmp;
+                    } else {
+                        result.add(mainList.size() > 0 ? ((ObjectElement) mainList.get(0)).getFields().size() : 0);
+                    }
+                    for (int i = 0; i < mainList.size(); i++)
+                        result.addAll(serializeFromObject((ObjectElement) mainList.get(i), true, definedFields, silent));
+                    break;
+                case VALUE_ANY:
+                case STRING:
+                case BYTE:
+                case SHORT:
+                case INTEGER:
+                case LONG:
+                case BIG_INTEGER:
+                case FLOAT:
+                case DOUBLE:
+                case BIG_DECIMAL:
+                case BYTES:
+                case BOOLEAN: {
+                    for (int i = 0; i < mainList.size(); i++)
+                        result.add(mainList.get(i));
+                    break;
                 }
-                for (int i = 0; i < mainList.size(); i++)
-                    result.addAll(serializeFromObject((ObjectElement) mainList.get(i), true, definedFields));
-                break;
-            case VALUE_ANY:
-            case STRING:
-            case BYTE:
-            case SHORT:
-            case INTEGER:
-            case LONG:
-            case BIG_INTEGER:
-            case FLOAT:
-            case DOUBLE:
-            case BIG_DECIMAL:
-            case BYTES:
-            case BOOLEAN: {
-                for (int i = 0; i < mainList.size(); i++)
-                    result.add(mainList.get(i));
-                break;
             }
+        } catch (Exception e) {
+            if (!silent)
+                throw new RuntimeException(e);
         }
         return result;
     }
 
-    private static List<Object> serializeFromObject(ObjectElement objectElement, boolean isSimple, List<String> definedFields) {
+    private static List<Object> serializeFromObject(ObjectElement objectElement, boolean isSimple, List<String> definedFields, boolean silent) {
         List<Object> result = new LinkedList<>();
         if (objectElement == null)
             return result;
-        if (definedFields != null) {
-            // because its check
-            // definedFields.stream()
-            //         .map(objectElement::findField)
-            //         .filter(Optional::isPresent)
-            //         .map(Optional::get)
-            objectElement.getFields().forEach(f -> result.addAll(serializeFromObjectFieldValue(f.getType(), f.getValue())));
-        } else {
-            if (!isSimple)
-                result.add(objectElement.getFields().size());
-            objectElement.getFields().forEach(objField -> {
-                result.add(objField.getName());
+        try {
+            if (definedFields != null) {
+                // because its check
+                // definedFields.stream()
+                //         .map(objectElement::findField)
+                //         .filter(Optional::isPresent)
+                //         .map(Optional::get)
+                objectElement.getFields().forEach(f -> result.addAll(serializeFromObjectFieldValue(f.getType(), f.getValue(), silent)));
+            } else {
                 if (!isSimple)
-                    result.add(toObjectTypePrivate(objField.getType(), objField.getValue() == null).ordinal());
-                if (objField.getValue() != null)
-                    result.addAll(serializeFromObjectFieldValue(objField.getType(), objField.getValue()));
-            });
+                    result.add(objectElement.getFields().size());
+                objectElement.getFields().forEach(objField -> {
+                    result.add(objField.getName());
+                    if (!isSimple)
+                        result.add(toObjectTypePrivate(objField.getType(), objField.getValue() == null).ordinal());
+                    if (objField.getValue() != null)
+                        result.addAll(serializeFromObjectFieldValue(objField.getType(), objField.getValue(), silent));
+                });
+            }
+        } catch (Exception e) {
+            if (!silent)
+                throw new RuntimeException(e);
         }
         return result;
     }
 
-    private static List<Object> serializeFromObjectFieldValue(ObjectType type, Object value) {
+    private static List<Object> serializeFromObjectFieldValue(ObjectType type, Object value, boolean silent) {
         switch (type) {
             case OBJECT_ARRAY:
                 return serializeFromObject((ObjectArray) value);
@@ -691,11 +998,11 @@ public class ModuleUtils {
                 if (((ObjectElement) value).isSimple()) {
                     List<Object> result = new LinkedList<>();
                     result.add(((ObjectElement) value).getFields().size());
-                    result.addAll(serializeFromObject((ObjectElement) value, true, null));
+                    result.addAll(serializeFromObject((ObjectElement) value, true, null, silent));
                     return result;
 
                 } else {
-                    return serializeFromObject((ObjectElement) value, false, null);
+                    return serializeFromObject((ObjectElement) value, false, null, silent);
                 }
             case VALUE_ANY:
             case STRING:
@@ -746,46 +1053,6 @@ public class ModuleUtils {
                 return isNull ? ObjectTypePrivate.BOOLEAN_NULL : ObjectTypePrivate.BOOLEAN;
         }
         return ObjectTypePrivate.valueOf(type.name());
-    }
-
-    public static boolean isNumber(IMessage m) {
-        return isNumber((IValue) m);
-    }
-
-    public static boolean isString(IMessage m) {
-        return isString((IValue) m);
-    }
-
-    public static boolean isBytes(IMessage m) {
-        return isBytes((IValue) m);
-    }
-
-    public static boolean isBoolean(IMessage m) {
-        return isBoolean((IValue) m);
-    }
-
-    public static boolean isObjectArray(IMessage m) {
-        return isObjectArray((IValue) m);
-    }
-
-    public static boolean isNumber(IValue m) {
-        return m != null && ((ValueType.BYTE.equals(m.getType()) || ValueType.SHORT.equals(m.getType()) || ValueType.INTEGER.equals(m.getType()) || ValueType.LONG.equals(m.getType()) || ValueType.FLOAT.equals(m.getType()) || ValueType.DOUBLE.equals(m.getType()) || ValueType.BIG_INTEGER.equals(m.getType()) || ValueType.BIG_DECIMAL.equals(m.getType())));
-    }
-
-    public static boolean isString(IValue m) {
-        return m != null && ValueType.STRING.equals(m.getType());
-    }
-
-    public static boolean isBytes(IValue m) {
-        return m != null && ValueType.BYTES.equals(m.getType());
-    }
-
-    public static boolean isBoolean(IValue m) {
-        return m != null && ValueType.BOOLEAN.equals(m.getType());
-    }
-
-    public static boolean isObjectArray(IValue m) {
-        return m != null && ValueType.OBJECT_ARRAY.equals(m.getType());
     }
 
     public static boolean hasErrors(ICommand c) {
@@ -851,258 +1118,6 @@ public class ModuleUtils {
                 .collect(Collectors.toList());
     }
 
-    public static boolean isArrayContainObjectElements(ObjectArray objectArray) {
-        return objectArray != null && objectArray.size() > 0 && ObjectType.OBJECT_ELEMENT == objectArray.getType();
-    }
-
-    public static boolean isArrayContainArrays(ObjectArray objectArray) {
-        return objectArray != null && objectArray.size() > 0 && ObjectType.OBJECT_ARRAY == objectArray.getType();
-    }
-
-    public static boolean isNumber(ObjectField m) {
-        return m != null && ((ObjectType.BYTE.equals(m.getType()) || ObjectType.SHORT.equals(m.getType()) || ObjectType.INTEGER.equals(m.getType()) || ObjectType.LONG.equals(m.getType()) || ObjectType.FLOAT.equals(m.getType()) || ObjectType.DOUBLE.equals(m.getType()) || ObjectType.BIG_INTEGER.equals(m.getType()) || ObjectType.BIG_DECIMAL.equals(m.getType())));
-    }
-
-    public static boolean isString(ObjectField m) {
-        return m != null && ObjectType.STRING.equals(m.getType());
-    }
-
-    public static boolean isBytes(ObjectField m) {
-        return m != null && ObjectType.BYTES.equals(m.getType());
-    }
-
-    public static boolean isBoolean(ObjectField m) {
-        return m != null && ObjectType.BOOLEAN.equals(m.getType());
-    }
-
-    public static boolean isObjectArray(ObjectField m) {
-        return m != null && ObjectType.OBJECT_ARRAY.equals(m.getType());
-    }
-
-    public static boolean isObjectElement(ObjectField m) {
-        return m != null && ObjectType.OBJECT_ELEMENT.equals(m.getType());
-    }
-
-    public static Number getNumber(ObjectField m) {
-        return isNumber(m) ? (Number) m.getValue() : null;
-    }
-
-    public static String getString(ObjectField m) {
-        return isString(m) ? (String) m.getValue() : null;
-    }
-
-    public static byte[] getBytes(ObjectField m) {
-        return isBytes(m) ? (byte[]) m.getValue() : null;
-    }
-
-    public static Boolean getBoolean(ObjectField m) {
-        return isBoolean(m) ? (Boolean) m.getValue() : null;
-    }
-
-    public static ObjectArray getObjectArray(ObjectField m) {
-        return isObjectArray(m) ? (ObjectArray) m.getValue() : null;
-    }
-
-    public static String toString(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return "";
-        String result;
-        switch (m.getType()) {
-            case STRING:
-                result = (String) m.getValue();
-                break;
-            case BYTES:
-                result = Base64.getEncoder().encodeToString((byte[]) m.getValue());
-                break;
-            default:
-                result = m.getValue().toString();
-                break;
-        }
-        return result;
-    }
-
-    public static Boolean toBoolean(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return false;
-        Boolean result;
-        switch (m.getType()) {
-            case STRING:
-                result = Boolean.parseBoolean(((String) m.getValue()).trim());
-                break;
-            case BOOLEAN:
-                result = (Boolean) m.getValue();
-                break;
-            case BYTES:
-            case OBJECT_ARRAY:
-                result = true;
-                break;
-            default:
-                result = ((Number) m.getValue()).intValue() > 0;
-                break;
-        }
-        return result;
-    }
-
-    public static Number toNumber(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return 0;
-        Number result;
-        switch (m.getType()) {
-            case STRING: {
-                String value = ((String) m.getValue()).trim();
-                if (!value.isBlank()) {
-                    try {
-                        if (value.contains(".")) {
-                            result = Double.parseDouble(value);
-                        } else {
-                            result = Long.parseLong(value);
-                        }
-                    } catch (Exception e) {
-                        result = 0;
-                    }
-                } else {
-                    result = 0;
-                }
-                break;
-            }
-            case BOOLEAN:
-                result = (Boolean) m.getValue() ? 1 : 0;
-                break;
-            case BYTES:
-                result = ((byte[]) m.getValue()).length;
-                break;
-            case OBJECT_ARRAY:
-                result = ((ObjectArray) m.getValue()).size();
-                break;
-            default:
-                result = (Number) m.getValue();
-                break;
-        }
-        return result;
-    }
-
-    public static Number toNumber(Number number, Class<? extends Number> cls) {
-        if (number == null || cls == null)
-            return 0;
-        if (Byte.class.equals(cls)) {
-            return number.byteValue();
-        } else if (Short.class.equals(cls)) {
-            return number.shortValue();
-        } else if (Integer.class.equals(cls)) {
-            return number.intValue();
-        } else if (Long.class.equals(cls)) {
-            return number.longValue();
-        } else if (Float.class.equals(cls)) {
-            return number.floatValue();
-        } else if (Double.class.equals(cls)) {
-            return number.doubleValue();
-        } else if (BigInteger.class.equals(cls)) {
-            return BigInteger.valueOf(number.longValue());
-        } else if (BigDecimal.class.equals(cls)) {
-            return BigDecimal.valueOf(number.doubleValue());
-        }
-        return number;
-    }
-
-    public static ObjectElement getObjectElement(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return null;
-        if (m.getType() == ObjectType.OBJECT_ARRAY) {
-            ObjectArray objectArray = (ObjectArray) m.getValue();
-            if (objectArray.size() > 0 && objectArray.getType() == ObjectType.OBJECT_ELEMENT)
-                return (ObjectElement) objectArray.get(0);
-        } else if (m.getType() == ObjectType.OBJECT_ELEMENT) {
-            return (ObjectElement) m.getValue();
-        }
-        return null;
-    }
-
-    public static List<ObjectElement> getObjectElements(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return null;
-        if (m.getType() == ObjectType.OBJECT_ARRAY) {
-            ObjectArray objectArray = (ObjectArray) m.getValue();
-            if (objectArray.getType() == ObjectType.OBJECT_ELEMENT) {
-                List<ObjectElement> result = new ArrayList<>(objectArray.size() + 1);
-                for (int i = 0; i < objectArray.size(); i++)
-                    result.add((ObjectElement) objectArray.get(i));
-                return result;
-            }
-        } else if (m.getType() == ObjectType.OBJECT_ELEMENT) {
-            return new ArrayList<>(List.of((ObjectElement) m.getValue()));
-        }
-        return null;
-    }
-
-    public static ObjectArray toObjectArray(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return new ObjectArray();
-        ObjectArray objectArray = null;
-        switch (m.getType()) {
-            case VALUE_ANY:
-            case STRING:
-            case BYTE:
-            case SHORT:
-            case INTEGER:
-            case LONG:
-            case BIG_INTEGER:
-            case FLOAT:
-            case DOUBLE:
-            case BIG_DECIMAL:
-            case BYTES:
-            case BOOLEAN:
-                objectArray = new ObjectArray(List.of(m.getValue()), m.getType());
-                break;
-            case OBJECT_ARRAY:
-                objectArray = (ObjectArray) m.getValue();
-                break;
-            case OBJECT_ELEMENT:
-                objectArray = new ObjectArray((ObjectElement) m.getValue());
-                break;
-        }
-        return objectArray != null ? objectArray : new ObjectArray();
-    }
-
-    public static ObjectElement toObjectElement(ObjectField m) {
-        if (m == null || m.getValue() == null)
-            return new ObjectElement();
-        ObjectElement objectElement = null;
-        switch (m.getType()) {
-            case VALUE_ANY:
-            case STRING:
-            case BYTE:
-            case SHORT:
-            case INTEGER:
-            case LONG:
-            case BIG_INTEGER:
-            case FLOAT:
-            case DOUBLE:
-            case BIG_DECIMAL:
-            case BYTES:
-            case BOOLEAN: {
-                ObjectField objectField = new ObjectField("0");
-                objectField.setValue(m.getType(), m.getValue());
-                objectElement = new ObjectElement(List.of(objectField));
-                break;
-            }
-            case OBJECT_ARRAY: {
-                ObjectArray objectArray = (ObjectArray) m.getValue();
-                if (isArrayContainObjectElements(objectArray)) {
-                    objectElement = (ObjectElement) objectArray.get(0);
-                } else if (objectArray.isSimple() && objectArray.size() > 0) {
-                    objectElement = new ObjectElement();
-                    for (int i = 0; i < objectArray.size(); i++)
-                        objectElement.getFields().add(new ObjectField(String.valueOf(i), objectArray.getType(), objectArray.get(i)));
-                }
-                break;
-            }
-            case OBJECT_ELEMENT:
-                objectElement = (ObjectElement) m.getValue();
-                break;
-        }
-        return objectElement != null ? objectElement : new ObjectElement();
-    }
-
     public static boolean isSameFields(ObjectArray objectArray) {
         if (objectArray == null || objectArray.getType() != ObjectType.OBJECT_ELEMENT)
             return false;
@@ -1160,6 +1175,14 @@ public class ModuleUtils {
 
     public static String[] splitFieldNames(String fieldPath) {
         return fieldPath.split("\\.");
+    }
+
+    public static boolean isArrayContainObjectElements(ObjectArray objectArray) {
+        return objectArray != null && objectArray.size() > 0 && ObjectType.OBJECT_ELEMENT == objectArray.getType();
+    }
+
+    public static boolean isArrayContainArrays(ObjectArray objectArray) {
+        return objectArray != null && objectArray.size() > 0 && ObjectType.OBJECT_ARRAY == objectArray.getType();
     }
 
     public static boolean isArrayContainNumber(ObjectArray objectArray) {
@@ -1255,6 +1278,8 @@ public class ModuleUtils {
     }
 
     public static ObjectType getObjectType(Object value) {
+        if (value == null)
+            return null;
         if (value instanceof ObjectElement) {
             return ObjectType.OBJECT_ELEMENT;
         } else {
@@ -1430,10 +1455,8 @@ public class ModuleUtils {
     }
 
     public static Optional<List<IMessage>> executeAndGetMessages(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        return executeAndGet(executionContextTool, id, params).stream()
-                .filter(ModuleUtils::hasData)
-                .map(IAction::getMessages)
-                .findFirst();
+        return getFirstActionWithData(executeAndGet(executionContextTool, id, params))
+                .map(IAction::getMessages);
     }
 
     public static List<IAction> executeAndGet(ExecutionContextTool executionContextTool, int id, List<Object> params) {
@@ -1441,12 +1464,12 @@ public class ModuleUtils {
         return executionContextTool.getFlowControlTool().getMessagesFromExecuted(id);
     }
 
-    public static Optional<ObjectElement> executeParallelAndGetElement(ExecutionContextTool executionContextTool, int id, List<Object> params) {
-        return getElement(executeParallelAndGet(executionContextTool, id, params));
-    }
-
     public static Optional<ObjectArray> executeParallelAndGetArrayElements(ExecutionContextTool executionContextTool, int id, List<Object> params) {
         return getElements(executeParallelAndGet(executionContextTool, id, params));
+    }
+
+    public static Optional<ObjectElement> executeParallelAndGetElement(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return getElement(executeParallelAndGet(executionContextTool, id, params));
     }
 
     public static <T> Optional<T> executeParallelAndGetObject(ExecutionContextTool executionContextTool, int id, List<Object> params, Class<T> cls, boolean ignoreCaseInName) {
@@ -1496,7 +1519,7 @@ public class ModuleUtils {
                 .collect(Collectors.toList());
     }
 
-    public static List<List<IMessage>> getLestMessages(ExecutionContextTool executionContextTool) {
+    public static List<List<IMessage>> getLastMessages(ExecutionContextTool executionContextTool) {
         return Stream.iterate(0, n -> n + 1)
                 .limit(executionContextTool.countSource())
                 .map(executionContextTool::getMessages)
