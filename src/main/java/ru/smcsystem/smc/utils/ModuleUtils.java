@@ -1784,7 +1784,7 @@ public class ModuleUtils {
                             value = convertToObjectArray((List) value, pClass, silent);
                         } else {
                             ValueType valueTypeClass = getValueTypeClass(Object.class.equals(propertyType) ? value.getClass() : propertyType);
-                            if (valueTypeClass == null) {
+                            if (valueTypeClass == null && !(value instanceof ObjectElement)) {
                                 // if (!parameterType.equals(String.class) && !Number.class.isAssignableFrom(parameterType) && !byte[].class.isAssignableFrom(parameterType)) {
                                 value = convertToObjectElement(value, silent, null);
                             }
