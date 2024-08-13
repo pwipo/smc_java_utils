@@ -63,7 +63,7 @@ public class SmcConverterMap extends SmcConverter<Map<String, Object>> {
         String key = Optional.of(ignoreCase ? objectElement.findFieldIgnoreCase(this.key) : objectElement.findField(this.key))
                 .flatMap(o -> o).filter(ObjectField::isSimple).map(ModuleUtils::toString).orElse(null);
         Object value = Optional.of(ignoreCase ? objectElement.findFieldIgnoreCase(this.value) : objectElement.findField(this.value))
-                .flatMap(o -> o).filter(ObjectField::isSimple).orElse(null);
+                .flatMap(o -> o).filter(ObjectField::isSimple).map(ObjectField::getValue).orElse(null);
         return key != null && value != null ? Map.entry(key, value) : null;
     }
 
