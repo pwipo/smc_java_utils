@@ -1498,25 +1498,26 @@ public class ModuleUtils {
     }
 
     public static String getStackTraceAsString(Throwable t) {
-        return getStackTraceAsString(t, false);
-    }
-
-    public static String getStackTraceAsString(Throwable t, boolean fullStock) {
-        if (!fullStock) {
-            StackTraceElement[] stackTrace = t.getStackTrace();
-            if (stackTrace != null && stackTrace.length > 0) {
-                List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
-                for (StackTraceElement element : stackTrace) {
-                    if (element.getClassName().startsWith("ru.smcsystem.core"))
-                        break;
-                    stackTraceNew.add(element);
-                }
-                t.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
-            }
-        }
+        filterException(t);
         StringWriter sw = new StringWriter();
         t.printStackTrace(new PrintWriter(sw));
         return sw.toString();
+    }
+
+    public static void filterException(Throwable e) {
+        if (e == null)
+            return;
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        if (stackTrace != null && stackTrace.length > 0) {
+            List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
+            for (StackTraceElement element : stackTrace) {
+                if (element.getClassName().startsWith("ru.smcsystem.core"))
+                    break;
+                stackTraceNew.add(element);
+            }
+            e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
+        }
+        filterException(e.getCause());
     }
 
     public static String getErrorMessageOrClassName(Throwable t) {
