@@ -1515,7 +1515,8 @@ public class ModuleUtils {
                     break;
                 stackTraceNew.add(element);
             }
-            e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
+            if (stackTraceNew.size() > 1)
+                e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
         }
         filterException(e.getCause());
     }
