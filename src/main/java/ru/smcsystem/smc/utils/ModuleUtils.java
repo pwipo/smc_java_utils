@@ -1511,7 +1511,7 @@ public class ModuleUtils {
         if (stackTrace != null && stackTrace.length > 0) {
             List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
             for (StackTraceElement element : stackTrace) {
-                if (element.getClassName().startsWith("ru.smcsystem.core"))
+                if (element.getClassName().startsWith("ru.smcsystem.processor"))
                     break;
                 stackTraceNew.add(element);
             }
