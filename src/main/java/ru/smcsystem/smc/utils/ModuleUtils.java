@@ -1510,16 +1510,27 @@ public class ModuleUtils {
         StackTraceElement[] stackTrace = e.getStackTrace();
         if (stackTrace != null && stackTrace.length > 0) {
             List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
-            boolean findNotSystem = false;
-            for (StackTraceElement element : stackTrace) {
-                if (findNotSystem && element.getClassName().startsWith("ru.smcsystem.processor"))
-                    break;
-                stackTraceNew.add(element);
-                if (!findNotSystem)
-                    findNotSystem = true;
+            boolean findOwnCode = false;
+            int lastSystemIndex = -1;
+            try {
+                for (int i = 0; i < stackTrace.length; i++) {
+                    StackTraceElement element = stackTrace[i];
+                    boolean system = element.getClassName().startsWith("ru.smcsystem.processor");
+                    if (findOwnCode && system) {
+                        if (lastSystemIndex > -1)
+                            stackTraceNew = stackTraceNew.subList(lastSystemIndex, stackTraceNew.size());
+                        break;
+                    }
+                    if (system)
+                        lastSystemIndex = i;
+                    stackTraceNew.add(element);
+                    if (!findOwnCode && !system && !element.getClassName().startsWith("java"))
+                        findOwnCode = true;
+                }
+                if (stackTraceNew.size() > 1)
+                    e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
+            } catch (Exception ignore) {
             }
-            if (stackTraceNew.size() > 1)
-                e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
         }
         filterException(e.getCause());
     }
