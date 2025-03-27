@@ -1510,10 +1510,13 @@ public class ModuleUtils {
         StackTraceElement[] stackTrace = e.getStackTrace();
         if (stackTrace != null && stackTrace.length > 0) {
             List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
+            boolean findNotSystem = false;
             for (StackTraceElement element : stackTrace) {
-                if (element.getClassName().startsWith("ru.smcsystem.processor"))
+                if (findNotSystem && element.getClassName().startsWith("ru.smcsystem.processor"))
                     break;
                 stackTraceNew.add(element);
+                if (!findNotSystem)
+                    findNotSystem = true;
             }
             if (stackTraceNew.size() > 1)
                 e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
