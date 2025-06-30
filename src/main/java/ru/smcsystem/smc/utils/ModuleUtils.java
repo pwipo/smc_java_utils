@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ModuleUtils {
+    private static final String NAME_PACKAGE_TOOLS = "ru.smcsystem.processor.service.process.tools.";
+    private static final String NAME_PROCESS_DYNAMIC = "ru.smcsystem.processor.service.process.ProcessDynamicImpl";
+
     public static boolean isNumber(IMessage m) {
         return isNumber((IValue) m);
     }
@@ -1510,25 +1513,33 @@ public class ModuleUtils {
         StackTraceElement[] stackTrace = e.getStackTrace();
         if (stackTrace != null && stackTrace.length > 0) {
             List<StackTraceElement> stackTraceNew = new ArrayList<>(stackTrace.length + 1);
-            boolean findOwnCode = false;
-            int lastSystemIndex = -1;
             try {
+                int indexEnd = -1;
                 for (int i = 0; i < stackTrace.length; i++) {
-                    StackTraceElement element = stackTrace[i];
-                    boolean system = element.getClassName().startsWith("ru.smcsystem.processor");
-                    if (findOwnCode && system) {
-                        if (lastSystemIndex > -1)
-                            stackTraceNew = stackTraceNew.subList(lastSystemIndex, stackTraceNew.size());
+                    if (stackTrace[i].getClassName().startsWith(NAME_PROCESS_DYNAMIC)) {
+                        indexEnd = i;
                         break;
                     }
-                    if (system)
-                        lastSystemIndex = i;
-                    stackTraceNew.add(element);
-                    if (!findOwnCode && !system && !element.getClassName().startsWith("java"))
-                        findOwnCode = true;
                 }
-                if (stackTraceNew.size() > 1)
+                if (indexEnd == -1)
+                    indexEnd = stackTrace.length - 1;
+
+                int indexStart = -1;
+                for (int i = indexEnd; i >= 0; i--) {
+                    if (stackTrace[i].getClassName().startsWith(NAME_PACKAGE_TOOLS)) {
+                        indexStart = i;
+                        break;
+                    }
+                }
+                if (indexStart == -1)
+                    indexStart = 0;
+
+                int count = indexEnd - indexStart;
+                if (count > 0 && count < stackTrace.length) {
+                    for (int i = indexStart; i < indexEnd; i++)
+                        stackTraceNew.add(stackTrace[i]);
                     e.setStackTrace(stackTraceNew.toArray(StackTraceElement[]::new));
+                }
             } catch (Exception ignore) {
             }
         }
