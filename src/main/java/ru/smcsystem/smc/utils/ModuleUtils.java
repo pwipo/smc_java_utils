@@ -1845,7 +1845,10 @@ public class ModuleUtils {
                             if (descriptor.getSmcField() != null && descriptor.getSmcField().required()) {
                                 throw new RuntimeException(String.format("Field %s is required", descriptor.getName()));
                             } else {
-                                objectField = new ObjectField(descriptor.getName(), convertTo(getValueTypeClass(getterMethod.getReturnType())), null);
+                                ObjectType objectType = convertTo(getValueTypeClass(getterMethod.getReturnType()));
+                                if (objectType == null)
+                                    objectType = ObjectType.STRING;
+                                objectField = new ObjectField(descriptor.getName(), objectType, null);
                             }
                         }
                     }
