@@ -1525,6 +1525,13 @@ public class ModuleUtils {
         return data;
     }
 
+    public static Optional<ICommand> executeParallelAndGetCommand(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        long threadId = executeParallel(executionContextTool, id, params);
+        List<ICommand> data = executionContextTool.getFlowControlTool().getCommandsFromExecuted(threadId, id);
+        executionContextTool.getFlowControlTool().releaseThread(threadId);
+        return getLastCommand(data);
+    }
+
     public static String getStackTraceAsString(Throwable t) {
         filterException(t);
         StringWriter sw = new StringWriter();
