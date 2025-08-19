@@ -1428,6 +1428,31 @@ public class ModuleUtils {
                 .collect(Collectors.toList()));
     }
 
+    public static boolean isData(IMessage message) {
+        return message != null && message.getMessageType() == MessageType.DATA;
+    }
+
+    public static boolean isError(IMessage message) {
+        return message != null && (message.getMessageType() == MessageType.ACTION_ERROR || message.getMessageType() == MessageType.ERROR);
+    }
+
+    public static Optional<IAction> getActionWithDataOrErrorMessages(List<IAction> actions) {
+        return actions.stream()
+                .filter((a) -> ModuleUtils.hasErrors(a) || (a.getType() == ActionType.EXECUTE && a.getMessages().stream().anyMatch(ModuleUtils::isData)))
+                .findFirst();
+    }
+
+    public static Optional<ICommand> getLastCommand(List<ICommand> commands) {
+        return commands.stream().reduce((first, second) -> second);
+    }
+
+    public static Optional<List<IMessage>> getDataOrErrorMessagesFromLastCommand(List<ICommand> commands) {
+        return getLastCommand(commands)
+                .flatMap(c -> getActionWithDataOrErrorMessages(c.getActions()))
+                .map(IAction::getMessages)
+                .map(l -> l.stream().filter(m -> isData(m) || isError(m)).collect(Collectors.toList()));
+    }
+
     public static Optional<ObjectArray> getElements(List<IAction> actions) {
         return getFirstActionWithData(actions)
                 .map(a -> ModuleUtils.deserializeToObject(new LinkedList<>(a.getMessages())))
