@@ -32,11 +32,11 @@ public class ModuleUtils {
     }
 
     public static boolean isNumber(IValue m) {
-        return m != null && ((ValueType.BYTE.equals(m.getType()) || ValueType.SHORT.equals(m.getType()) || ValueType.INTEGER.equals(m.getType()) || ValueType.LONG.equals(m.getType()) || ValueType.FLOAT.equals(m.getType()) || ValueType.DOUBLE.equals(m.getType()) || ValueType.BIG_INTEGER.equals(m.getType()) || ValueType.BIG_DECIMAL.equals(m.getType())));
+        return m != null && isNumber(m.getType());
     }
 
     public static boolean isNumber(ObjectField m) {
-        return m != null && ((ObjectType.BYTE.equals(m.getType()) || ObjectType.SHORT.equals(m.getType()) || ObjectType.INTEGER.equals(m.getType()) || ObjectType.LONG.equals(m.getType()) || ObjectType.FLOAT.equals(m.getType()) || ObjectType.DOUBLE.equals(m.getType()) || ObjectType.BIG_INTEGER.equals(m.getType()) || ObjectType.BIG_DECIMAL.equals(m.getType())));
+        return m != null && isNumber(m.getType());
     }
 
     public static boolean isString(IMessage m) {
@@ -1933,6 +1933,16 @@ public class ModuleUtils {
                 executorService.shutdownNow();
             }
         }
+    }
+
+    public static boolean isNumber(ValueType type) {
+        return ValueType.BYTE.equals(type) || ValueType.SHORT.equals(type) || ValueType.INTEGER.equals(type) || ValueType.LONG.equals(type) || ValueType.FLOAT.equals(type) ||
+                ValueType.DOUBLE.equals(type) || ValueType.BIG_INTEGER.equals(type) || ValueType.BIG_DECIMAL.equals(type);
+    }
+
+    public static boolean isNumber(ObjectType type) {
+        return ObjectType.BYTE.equals(type) || ObjectType.SHORT.equals(type) || ObjectType.INTEGER.equals(type) || ObjectType.LONG.equals(type) || ObjectType.FLOAT.equals(type) ||
+                ObjectType.DOUBLE.equals(type) || ObjectType.BIG_INTEGER.equals(type) || ObjectType.BIG_DECIMAL.equals(type);
     }
 
 }
