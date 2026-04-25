@@ -6,7 +6,6 @@ import ru.smcsystem.api.enumeration.ValueType;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class ValueBytesConverter {
@@ -80,9 +79,15 @@ public class ValueBytesConverter {
                 break;
             case FLOAT:
                 dos.writeFloat((Float) value);
+                // byte[] bytes = new byte[4];
+                // ByteBuffer.wrap(bytes).putFloat((Float) value);
+                // dos.write(bytes);
                 break;
             case DOUBLE:
                 dos.writeDouble((Double) value);
+                // byte[] bytes = new byte[8];
+                // ByteBuffer.wrap(bytes).putDouble((Double) value);
+                // dos.write(bytes);
                 break;
             case BIG_DECIMAL:
                 dos.write(bigDecimalToByte((BigDecimal) value));
@@ -165,9 +170,11 @@ public class ValueBytesConverter {
                 break;
             case FLOAT:
                 result = dis.readFloat();
+                // result = ByteBuffer.wrap(dis.readNBytes(4)).getFloat();
                 break;
             case DOUBLE:
                 result = dis.readDouble();
+                // result = ByteBuffer.wrap(dis.readNBytes(8)).getDouble();
                 break;
             case BIG_DECIMAL:
                 result = dis.available() >= size ? byteToBigDecimal(dis.readNBytes(size)) : BigDecimal.ZERO;
