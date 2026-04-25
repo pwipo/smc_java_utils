@@ -1074,9 +1074,7 @@ public class ModuleUtils {
         if (a == null)
             return false;
         return !a.getMessages().isEmpty()
-                // && ActionType.EXECUTE.equals(a.getType())
-                // && a.getMessages().stream().anyMatch(m -> MessageType.DATA.equals(m.getMessageType()))
-                && a.getMessages().stream().anyMatch(m -> MessageType.ERROR.equals(m.getMessageType()) || MessageType.ACTION_ERROR.equals(m.getMessageType()));
+                && a.getMessages().stream().anyMatch(ModuleUtils::isError);
     }
 
     public static boolean hasData(IAction a) {
@@ -1091,7 +1089,7 @@ public class ModuleUtils {
         if (a == null)
             return List.of();
         return a.getMessages().stream()
-                .filter(m -> MessageType.ERROR.equals(m.getMessageType()) || MessageType.ACTION_ERROR.equals(m.getMessageType()))
+                .filter(ModuleUtils::isError)
                 .collect(Collectors.toList());
     }
 
@@ -1119,6 +1117,14 @@ public class ModuleUtils {
                 .map(ModuleUtils::getData)
                 .filter(l -> !l.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    public static List<IMessage> getDataSimple(ICommand c) {
+        if (c == null)
+            return List.of();
+        return getActionWithDataOrErrorMessages(c.getActions())
+                .map(ModuleUtils::getData)
+                .orElse(List.of());
     }
 
     public static boolean isSameFields(ObjectArray objectArray) {
@@ -1487,9 +1493,20 @@ public class ModuleUtils {
                 .map(IAction::getMessages);
     }
 
+    public static Optional<IMessage> executeAndGetFirstMessage(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return executeAndGetMessages(executionContextTool, id, params).stream()
+                .flatMap(Collection::stream)
+                .findFirst();
+    }
+
     public static List<IAction> executeAndGet(ExecutionContextTool executionContextTool, int id, List<Object> params) {
         executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
         return executionContextTool.getFlowControlTool().getMessagesFromExecuted(id);
+    }
+
+    public static Optional<ICommand> executeAndGetCommand(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        executionContextTool.getFlowControlTool().executeNow(CommandType.EXECUTE, id, params);
+        return getLastCommand(executionContextTool.getFlowControlTool().getCommandsFromExecuted(id));
     }
 
     public static Optional<ObjectArray> executeParallelAndGetArrayElements(ExecutionContextTool executionContextTool, int id, List<Object> params) {
@@ -1515,6 +1532,12 @@ public class ModuleUtils {
         return executeParallelAndGet(executionContextTool, id, params).stream()
                 .filter(ModuleUtils::hasData)
                 .map(IAction::getMessages)
+                .findFirst();
+    }
+
+    public static Optional<IMessage> executeParallelAndGetFirstMessage(ExecutionContextTool executionContextTool, int id, List<Object> params) {
+        return executeParallelAndGetMessages(executionContextTool, id, params).stream()
+                .flatMap(Collection::stream)
                 .findFirst();
     }
 
@@ -1884,6 +1907,7 @@ public class ModuleUtils {
                             }
                         }
                     }
+                    objectField.setName(descriptor.getOutputName());
                     objectElement.getFields().add(objectField);
                 } catch (NoSuchMethodException e) {
                     if (!Objects.equals(descriptor.getName(), "class") && !silent)
@@ -1943,6 +1967,10 @@ public class ModuleUtils {
     public static boolean isNumber(ObjectType type) {
         return ObjectType.BYTE.equals(type) || ObjectType.SHORT.equals(type) || ObjectType.INTEGER.equals(type) || ObjectType.LONG.equals(type) || ObjectType.FLOAT.equals(type) ||
                 ObjectType.DOUBLE.equals(type) || ObjectType.BIG_INTEGER.equals(type) || ObjectType.BIG_DECIMAL.equals(type);
+    }
+
+    public static ObjectArray genOneFieldObjectArray(String name, ObjectType type, Object value) {
+        return new ObjectArray(new ObjectElement(new ObjectField(name, type, value)));
     }
 
 }

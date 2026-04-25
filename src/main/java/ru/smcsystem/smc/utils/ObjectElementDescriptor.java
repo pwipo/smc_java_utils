@@ -12,11 +12,13 @@ public class ObjectElementDescriptor<T> {
     private final PropertyDescriptor propertyDescriptor;
     private final SmcField smcField;
     private final SmcConverter<?> smcConverter;
+    private final String outputName;
 
     public ObjectElementDescriptor(Class<T> cls, PropertyDescriptor propertyDescriptor) throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.propertyDescriptor = propertyDescriptor;
         this.smcField = cls.getDeclaredField(propertyDescriptor.getName()).getAnnotation(SmcField.class);
         this.name = smcField != null && !Objects.equals(smcField.name(), "##default") ? smcField.name() : propertyDescriptor.getName();
+        this.outputName = smcField != null && !Objects.equals(smcField.outputName(), "##default") ? smcField.outputName() : this.name;
         SmcConverter<?> smcConverterTmp = null;
         if (smcField != null && smcField.converter() != SmcConverter.None.class) {
             Constructor<?> constructor = smcField.converter().getConstructors()[0];
@@ -54,4 +56,7 @@ public class ObjectElementDescriptor<T> {
         return smcConverter;
     }
 
+    public String getOutputName() {
+        return outputName;
+    }
 }

@@ -32,4 +32,10 @@ public @interface SmcField {
      */
     int order() default 0;
 
+    /**
+     * output field name
+     * If the value is "##default", then value is same as name.
+     */
+    String outputName() default "##default";
+
 }
