@@ -57,7 +57,7 @@ public class ValueBytesConverter {
         }
     }
 
-    private static void toByteArray(ValueType valueType, Number value, DataOutputStream dos) throws IOException {
+    public static void toByteArray(ValueType valueType, Number value, DataOutputStream dos) throws IOException {
         Objects.requireNonNull(valueType, "valueType not set");
         Objects.requireNonNull(value, "value not set");
         Objects.requireNonNull(dos, "dos not set");
@@ -145,7 +145,7 @@ public class ValueBytesConverter {
         return result;
     }
 
-    private static Number bytesToValueNumber2(ValueType valueType, DataInputStream dis, int size) throws IOException {
+    public static Number bytesToValueNumber2(ValueType valueType, DataInputStream dis, int size) throws IOException {
         Number result = null;
         switch (valueType) {
             case BYTE:
