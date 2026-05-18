@@ -1164,7 +1164,7 @@ public class ModuleUtils {
     public static List<ObjectField> findFields(List<ObjectElement> objectElements, String[] names, int level) {
         if (names.length <= level)
             return List.of();
-        String name = names[level];
+        String name = names[level].trim();
         List<ObjectField> fields = new LinkedList<>();
         for (ObjectElement objectElement : objectElements) {
             Optional<ObjectField> field = objectElement.findField(name);
@@ -1183,7 +1183,7 @@ public class ModuleUtils {
     }
 
     public static String[] splitFieldNames(String fieldPath) {
-        return fieldPath.split("\\.");
+        return fieldPath != null ? fieldPath.trim().split("\\.") : new String[0];
     }
 
     public static boolean isArrayContainObjectElements(ObjectArray objectArray) {
