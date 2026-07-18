@@ -368,16 +368,12 @@ public class ObjectArrayJsonConverter {
             // Проверяем, является ли строка Base64
             if (checkBytes && isBase64(str)) {
                 try {
-                    if (str.startsWith(BASE64_PREFIX_1)) {
-                        if (str.contains(BASE64_PREFIX_2)) {
-                            str = str.substring(str.indexOf(BASE64_PREFIX_2) + BASE64_PREFIX_2.length());
-                        } else {
-                            str = str.substring(BASE64_PREFIX_1.length());
-                        }
-                    }
-                    byte[] bytes = Base64.getDecoder().decode(str);
+                    String str2 = str;
+                    if (str2.startsWith(BASE64_PREFIX_1) && str2.contains(BASE64_PREFIX_2))
+                        str2 = str2.substring(str2.indexOf(BASE64_PREFIX_2) + BASE64_PREFIX_2.length());
+                    byte[] bytes = Base64.getDecoder().decode(str2);
                     return Map.entry(ObjectType.BYTES, bytes);
-                } catch (IllegalArgumentException ignored) {
+                } catch (Exception ignored) {
                 }
             }
             return Map.entry(ObjectType.STRING, str);
@@ -435,7 +431,7 @@ public class ObjectArrayJsonConverter {
                 return false;
             // Допустимые символы: A-Z a-z 0-9 + / = (максимум два = в конце)
             // return s.length() % 4 == 0 && s.matches("^[A-Za-z0-9+/]*={0,2}$");
-            if (s.startsWith(BASE64_PREFIX_1))
+            if (s.startsWith(BASE64_PREFIX_1) && s.contains(BASE64_PREFIX_2))
                 return true;
             return s.length() >= 2 && !s.isBlank() && s.length() % 4 == 0 && (s.endsWith("=") || s.length() > 50) && base64.matcher(s).find();
         }
