@@ -21,11 +21,19 @@ public class ObjectArrayJsonConverter {
     private static final String BASE64_PREFIX_2 = ";base64,";
 
     // ==================== Прямое преобразование ====================
+    public static String to(ObjectArray objectArray, boolean silent) {
+        return to(objectArray, true, silent, false, 1);
+    }
+
     public static String to(ObjectArray objectArray, boolean silent, boolean prettyPrint, int countSpaces) {
+        return to(objectArray, true, silent, prettyPrint, countSpaces);
+    }
+
+    public static String to(ObjectArray objectArray, boolean forceArray, boolean silent, boolean prettyPrint, int countSpaces) {
         String INDENT = " ".repeat(Math.max(1, countSpaces));
         StringBuilder sb = new StringBuilder();
         try {
-            to(objectArray, sb, prettyPrint, 0, INDENT);
+            to(objectArray, sb, prettyPrint, 0, INDENT, forceArray);
         } catch (Exception e) {
             if (!silent)
                 throw e;
@@ -41,14 +49,12 @@ public class ObjectArrayJsonConverter {
         sb.append(INDENT.repeat(Math.max(0, level)));
     }
 
-    private static void to(ObjectArray objectArray, StringBuilder sb, boolean prettyPrint, int level, String INDENT) {
+    private static void to(ObjectArray objectArray, StringBuilder sbMain, boolean prettyPrint, int level, String INDENT, boolean forceArray) {
         if (objectArray == null || objectArray.size() == 0) {
-            sb.append("[]");
+            sbMain.append("[]");
             return;
         }
-        sb.append('[');
-        if (prettyPrint)
-            sb.append('\n');
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < objectArray.size(); i++) {
             Object v = objectArray.get(i);
             if (prettyPrint)
@@ -65,9 +71,9 @@ public class ObjectArrayJsonConverter {
                 sb.append(escapeJsonString(v.toString()));
                 sb.append('"');
             } else if (objectArray.getType() == ObjectType.OBJECT_ARRAY) {
-                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT);
+                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT, forceArray);
             } else if (objectArray.getType() == ObjectType.OBJECT_ELEMENT) {
-                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT);
+                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT, forceArray);
             } else {
                 sb.append(v.toString());
             }
@@ -76,12 +82,21 @@ public class ObjectArrayJsonConverter {
             if (prettyPrint)
                 sb.append('\n');
         }
-        if (prettyPrint)
-            appendIndent(sb, level, INDENT);
-        sb.append(']');
+        boolean useArray = forceArray || objectArray.size() > 1;
+        if (useArray) {
+            sbMain.append('[');
+            if (prettyPrint)
+                sbMain.append('\n');
+            sbMain.append(sb);
+            if (prettyPrint)
+                appendIndent(sbMain, level, INDENT);
+            sbMain.append(']');
+        } else {
+            sbMain.append(sb);
+        }
     }
 
-    private static void to(ObjectElement objectElement, StringBuilder sb, boolean prettyPrint, int level, String INDENT) {
+    private static void to(ObjectElement objectElement, StringBuilder sb, boolean prettyPrint, int level, String INDENT, boolean forceArray) {
         if (objectElement == null || objectElement.getFields().size() == 0) {
             sb.append("{}");
             return;
@@ -107,9 +122,9 @@ public class ObjectArrayJsonConverter {
                 sb.append(escapeJsonString(v.toString()));
                 sb.append('"');
             } else if (f.getType() == ObjectType.OBJECT_ARRAY) {
-                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT);
+                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT, forceArray);
             } else if (f.getType() == ObjectType.OBJECT_ELEMENT) {
-                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT);
+                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT, forceArray);
             } else {
                 sb.append(v.toString());
             }
