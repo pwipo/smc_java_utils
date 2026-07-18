@@ -22,7 +22,7 @@ public class ObjectArrayJsonConverter {
 
     // ==================== Прямое преобразование ====================
     public static String to(ObjectArray objectArray, boolean silent, boolean prettyPrint, int countSpaces) {
-        String INDENT = " ".repeat(countSpaces);
+        String INDENT = " ".repeat(Math.max(1, countSpaces));
         StringBuilder sb = new StringBuilder();
         try {
             to(objectArray, sb, prettyPrint, 0, INDENT);
