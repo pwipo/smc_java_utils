@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 public class ObjectArrayJsonConverter {
     private static final Pattern base64 = Pattern.compile("^([A-Za-z0-9+\\/]{4})*([A-Za-z0-9+\\/]{4}|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{2}==)$");
     // private static final String INDENT = "  "; // отступ для pretty-формата
+    private static final String BASE64_PREFIX_1 = "data:";
+    private static final String BASE64_PREFIX_2 = ";base64,";
 
     // ==================== Прямое преобразование ====================
     public static String to(ObjectArray objectArray, boolean silent, boolean prettyPrint, int countSpaces) {
@@ -52,6 +54,8 @@ public class ObjectArrayJsonConverter {
                 appendIndent(sb, level + 1, INDENT);
             if (objectArray.getType() == ObjectType.BYTES) {
                 sb.append('"');
+                sb.append(BASE64_PREFIX_1);
+                sb.append(BASE64_PREFIX_2);
                 sb.append(Base64.getEncoder().encodeToString((byte[]) v));
                 sb.append('"');
             } else if (objectArray.getType() == ObjectType.STRING) {
@@ -91,6 +95,8 @@ public class ObjectArrayJsonConverter {
             Object v = f.getValue();
             if (f.getType() == ObjectType.BYTES) {
                 sb.append('"');
+                sb.append(BASE64_PREFIX_1);
+                sb.append(BASE64_PREFIX_2);
                 sb.append(Base64.getEncoder().encodeToString((byte[]) v));
                 sb.append('"');
             } else if (f.getType() == ObjectType.STRING) {
@@ -359,6 +365,8 @@ public class ObjectArrayJsonConverter {
             // Проверяем, является ли строка Base64
             if (checkBytes && isBase64(str)) {
                 try {
+                    if (str.startsWith(BASE64_PREFIX_1) && str.contains(BASE64_PREFIX_2))
+                        str = str.substring(str.indexOf(BASE64_PREFIX_2) + BASE64_PREFIX_2.length());
                     byte[] bytes = Base64.getDecoder().decode(str);
                     return Map.entry(ObjectType.BYTES, bytes);
                 } catch (IllegalArgumentException ignored) {
@@ -419,6 +427,8 @@ public class ObjectArrayJsonConverter {
                 return false;
             // Допустимые символы: A-Z a-z 0-9 + / = (максимум два = в конце)
             // return s.length() % 4 == 0 && s.matches("^[A-Za-z0-9+/]*={0,2}$");
+            if (s.startsWith(BASE64_PREFIX_1) && s.contains(BASE64_PREFIX_2))
+                return true;
             return s.length() >= 2 && !s.isBlank() && s.length() % 4 == 0 && (s.endsWith("=") || s.length() > 30) && base64.matcher(s).find();
         }
 
