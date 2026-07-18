@@ -429,7 +429,7 @@ public class ObjectArrayJsonConverter {
             // return s.length() % 4 == 0 && s.matches("^[A-Za-z0-9+/]*={0,2}$");
             if (s.startsWith(BASE64_PREFIX_1) && s.contains(BASE64_PREFIX_2))
                 return true;
-            return s.length() >= 2 && !s.isBlank() && s.length() % 4 == 0 && (s.endsWith("=") || s.length() > 30) && base64.matcher(s).find();
+            return s.length() >= 2 && !s.isBlank() && s.length() % 4 == 0 && (s.endsWith("=") || s.length() > 50) && base64.matcher(s).find();
         }
 
         /**
