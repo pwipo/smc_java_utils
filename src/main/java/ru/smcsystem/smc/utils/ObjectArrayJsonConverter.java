@@ -15,28 +15,41 @@ import java.util.regex.Pattern;
  */
 public class ObjectArrayJsonConverter {
     private static final Pattern base64 = Pattern.compile("^([A-Za-z0-9+\\/]{4})*([A-Za-z0-9+\\/]{4}|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{2}==)$");
+    // private static final String INDENT = "  "; // отступ для pretty-формата
 
     // ==================== Прямое преобразование ====================
-    public static String to(ObjectArray objectArray, boolean silent) {
-        String result = "[]";
+    public static String to(ObjectArray objectArray, boolean silent, boolean prettyPrint, int countSpaces) {
+        String INDENT = " ".repeat(countSpaces);
+        StringBuilder sb = new StringBuilder();
         try {
-            result = to(objectArray);
+            to(objectArray, sb, prettyPrint, 0, INDENT);
         } catch (Exception e) {
             if (!silent)
                 throw e;
+            sb.append("[]");
         }
-        return result;
+        return sb.toString();
     }
 
-    private static String to(ObjectArray objectArray) {
-        if (objectArray == null || objectArray.size() == 0)
-            return "[]";
-        StringBuilder sb = new StringBuilder();
+    /**
+     * Добавляет отступ из пробелов для указанного уровня.
+     */
+    private static void appendIndent(StringBuilder sb, int level, String INDENT) {
+        sb.append(INDENT.repeat(Math.max(0, level)));
+    }
+
+    private static void to(ObjectArray objectArray, StringBuilder sb, boolean prettyPrint, int level, String INDENT) {
+        if (objectArray == null || objectArray.size() == 0) {
+            sb.append("[]");
+            return;
+        }
         sb.append('[');
+        if (prettyPrint)
+            sb.append('\n');
         for (int i = 0; i < objectArray.size(); i++) {
             Object v = objectArray.get(i);
-            if (i > 0)
-                sb.append(',');
+            if (prettyPrint)
+                appendIndent(sb, level + 1, INDENT);
             if (objectArray.getType() == ObjectType.BYTES) {
                 sb.append('"');
                 sb.append(Base64.getEncoder().encodeToString((byte[]) v));
@@ -46,30 +59,35 @@ public class ObjectArrayJsonConverter {
                 sb.append(escapeJsonString(v.toString()));
                 sb.append('"');
             } else if (objectArray.getType() == ObjectType.OBJECT_ARRAY) {
-                sb.append(to((ObjectArray) v));
+                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT);
             } else if (objectArray.getType() == ObjectType.OBJECT_ELEMENT) {
-                sb.append(to((ObjectElement) v));
+                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT);
             } else {
                 sb.append(v.toString());
             }
+            if (i < objectArray.size() - 1)
+                sb.append(',');
+            if (prettyPrint)
+                sb.append('\n');
         }
+        if (prettyPrint)
+            appendIndent(sb, level, INDENT);
         sb.append(']');
-        return sb.toString();
     }
 
-    private static String to(ObjectElement objectElement) {
-        if (objectElement == null || objectElement.getFields().size() == 0)
-            return "{}";
-        StringBuilder sb = new StringBuilder();
+    private static void to(ObjectElement objectElement, StringBuilder sb, boolean prettyPrint, int level, String INDENT) {
+        if (objectElement == null || objectElement.getFields().size() == 0) {
+            sb.append("{}");
+            return;
+        }
         sb.append('{');
+        if (prettyPrint)
+            sb.append('\n');
         for (int i = 0; i < objectElement.getFields().size(); i++) {
             ObjectField f = objectElement.getFields().get(i);
-            if (i > 0)
-                sb.append(',');
-            sb.append('"');
-            sb.append(f.getName());
-            sb.append('"');
-            sb.append(':');
+            if (prettyPrint)
+                appendIndent(sb, level + 1, INDENT);
+            sb.append('"').append(f.getName()).append('"').append(':');
             Object v = f.getValue();
             if (f.getType() == ObjectType.BYTES) {
                 sb.append('"');
@@ -80,15 +98,20 @@ public class ObjectArrayJsonConverter {
                 sb.append(escapeJsonString(v.toString()));
                 sb.append('"');
             } else if (f.getType() == ObjectType.OBJECT_ARRAY) {
-                sb.append(to((ObjectArray) v));
+                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT);
             } else if (f.getType() == ObjectType.OBJECT_ELEMENT) {
-                sb.append(to((ObjectElement) v));
+                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT);
             } else {
                 sb.append(v.toString());
             }
+            if (i < objectElement.getFields().size() - 1)
+                sb.append(',');
+            if (prettyPrint)
+                sb.append('\n');
         }
+        if (prettyPrint)
+            appendIndent(sb, level, INDENT);
         sb.append('}');
-        return sb.toString();
     }
 
     /**
