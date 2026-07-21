@@ -57,6 +57,8 @@ public class ObjectArrayJsonConverter {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < objectArray.size(); i++) {
             Object v = objectArray.get(i);
+            if (v == null)
+                continue;
             if (prettyPrint)
                 appendIndent(sb, level + 1, INDENT);
             if (objectArray.getType() == ObjectType.BYTES) {
@@ -110,23 +112,27 @@ public class ObjectArrayJsonConverter {
                 appendIndent(sb, level + 1, INDENT);
             sb.append('"').append(f.getName()).append('"').append(':');
             Object v = f.getValue();
-            if (f.getType() == ObjectType.BYTES) {
-                sb.append('"');
-                sb.append(BASE64_PREFIX_1);
-                sb.append(BASE64_PREFIX_MEDIATYPE);
-                sb.append(BASE64_PREFIX_2);
-                sb.append(Base64.getEncoder().encodeToString((byte[]) v));
-                sb.append('"');
-            } else if (f.getType() == ObjectType.STRING) {
-                sb.append('"');
-                sb.append(escapeJsonString(v.toString()));
-                sb.append('"');
-            } else if (f.getType() == ObjectType.OBJECT_ARRAY) {
-                to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT, forceArray);
-            } else if (f.getType() == ObjectType.OBJECT_ELEMENT) {
-                to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT, forceArray);
+            if (v != null) {
+                if (f.getType() == ObjectType.BYTES) {
+                    sb.append('"');
+                    sb.append(BASE64_PREFIX_1);
+                    sb.append(BASE64_PREFIX_MEDIATYPE);
+                    sb.append(BASE64_PREFIX_2);
+                    sb.append(Base64.getEncoder().encodeToString((byte[]) v));
+                    sb.append('"');
+                } else if (f.getType() == ObjectType.STRING) {
+                    sb.append('"');
+                    sb.append(escapeJsonString(v.toString()));
+                    sb.append('"');
+                } else if (f.getType() == ObjectType.OBJECT_ARRAY) {
+                    to((ObjectArray) v, sb, prettyPrint, level + 1, INDENT, forceArray);
+                } else if (f.getType() == ObjectType.OBJECT_ELEMENT) {
+                    to((ObjectElement) v, sb, prettyPrint, level + 1, INDENT, forceArray);
+                } else {
+                    sb.append(v.toString());
+                }
             } else {
-                sb.append(v.toString());
+                sb.append("null");
             }
             if (i < objectElement.getFields().size() - 1)
                 sb.append(',');
